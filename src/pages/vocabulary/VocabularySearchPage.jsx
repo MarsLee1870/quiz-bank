@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import getGoogleSheetData from "@/api/getGoogleSheetData";
+import { getVocabularyData } from "@/lib/getVocabularyData";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 
-// ✅ 隨機排序選項用
 function shuffleArray(array) {
   const shuffled = [...array];
   for (let i = shuffled.length - 1; i > 0; i--) {
@@ -15,69 +15,138 @@ function shuffleArray(array) {
 
 export default function VocabularySearchPage() {
   const [allQuestions, setAllQuestions] = useState([]);
-  const [searchWord, setSearchWord] = useState("");
-  const [filteredQuestions, setFilteredQuestions] = useState([]);
+  const [inputText, setInputText] = useState("");
+  const [groupedQuestions, setGroupedQuestions] = useState({});
+  const [selectedQuestions, setSelectedQuestions] = useState({});
 
-  // ✅ 抓取所有單字題目
   useEffect(() => {
     const fetchData = async () => {
-      const data = await getGoogleSheetData("vocabulary");
+      const data = await getVocabularyData();
       setAllQuestions(data);
     };
     fetchData();
   }, []);
 
-  // ✅ 搜尋單字時觸發篩選 + 重新洗牌選項
-  const handleSearch = (word) => {
-    setSearchWord(word);
+  const handleSearch = () => {
+    const words = inputText
+      .split("\n")
+      .map((w) => w.trim().toLowerCase())
+      .filter((w) => w);
 
-    const results = allQuestions
-      .filter((q) =>
-        q["正解單字"]?.toLowerCase().includes(word.toLowerCase())
-      )
-      .map((q) => {
-        const choices = ["選項A1", "選項B1", "選項C1", "選項D1"].map((key) => ({
-          text: q[key],
-          isCorrect: q[key] === q["正解單字"],
-        }));
-        return {
-          ...q,
-          shuffledChoices: shuffleArray(choices),
-        };
-      });
+    const grouped = {};
 
-    setFilteredQuestions(results);
+    words.forEach((word) => {
+      const matched = allQuestions
+        .filter((q) => q["正解單字"]?.toLowerCase() === word)
+        .map((q) => {
+          const choices = [
+            { text: q["選項A"], original: "A" },
+            { text: q["選項B"], original: "B" },
+            { text: q["選項C"], original: "C" },
+            { text: q["選項D"], original: "D" },
+          ];
+
+          const correctLetter = q["答案"]?.toUpperCase?.();
+          const correctText = q[`選項${correctLetter}`];
+
+          const shuffledChoices = shuffleArray(choices);
+          const newCorrectIndex = shuffledChoices.findIndex(
+            (c) => c.text === correctText
+          );
+
+          return {
+            ...q,
+            shuffledChoices,
+            newCorrectAnswer: String.fromCharCode(65 + newCorrectIndex),
+          };
+        });
+
+        grouped[word] = matched.length > 0 ? matched : null;
+
+    });
+
+    setGroupedQuestions(grouped);
+    setSelectedQuestions({});
   };
 
+  const toggleSelect = (questionId) => {
+    setSelectedQuestions((prev) => ({
+      ...prev,
+      [questionId]: !prev[questionId],
+    }));
+  };
+  
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold mb-4">單字題庫搜尋</h1>
+    <div className="relative h-screen overflow-hidden">
+      {/* 中央標題 */}
+      <div className="w-full flex items-center justify-between px-6 py-6 border-b border-gray-300">
+  <h1 className="text-4xl font-bold text-center w-full">單字題庫</h1>
+  <div className="absolute right-6">
+    <Button className="bg-blue-600 text-white">匯出 word</Button>
+  </div>
+</div>
 
-      <Input
-        type="text"
-        placeholder="輸入單字，例如：happy"
-        value={searchWord}
-        onChange={(e) => handleSearch(e.target.value)}
-      />
+  
+      <div className="flex h-full">
+        {/* 左側輸入區塊 */}
+        <div className="w-1/3 p-6 border-r border-gray-300 flex flex-col">
+          <p className="mb-2">輸入單字（⼀⾏⼀個字）</p>
+          <textarea
+            className="h-60 resize-none border rounded-md p-2 overflow-y-auto"
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+          />
+        <Button className="mt-4 bg-blue-600 text-white" onClick={handleSearch}>
+          出題
+        </Button>
+      </div>
 
-      {filteredQuestions.length === 0 && searchWord && (
-        <p className="text-gray-600">找不到符合「{searchWord}」的題目。</p>
+      {/* 右側題目顯示區塊 */}
+      <div className="w-2/3 p-6 overflow-y-auto relative h-[calc(100vh-96px)]">
+      {Object.keys(groupedQuestions).length === 0 ? (
+  <p className="text-gray-500">請先輸入單字並點擊「出題」</p>
+) : (
+  Object.entries(groupedQuestions).map(([word, questions]) => (
+    <div key={word} className="mb-8">
+      <h2 className="text-xl font-bold mb-2">{word}</h2>
+
+      {questions === null ? (
+        <p className="text-red-600 pl-2">沒這題目，你自己出吧！加油！</p>
+      ) : (
+        questions.map((q, idx) => (
+          <div
+            key={q["題號"] || idx}
+            className="border rounded-md p-4 shadow-sm mb-4"
+          >
+            <div className="flex items-start gap-2">
+              <Checkbox
+                checked={!!selectedQuestions[q["題號"]]}
+                onCheckedChange={() => toggleSelect(q["題號"])}
+              />
+              <div>
+              <p className="font-semibold mb-1">
+  {idx + 1}. ( {q.newCorrectAnswer} ) {q["題目內容"]}
+</p>
+                <div className="pl-4 flex gap-6 flex-wrap">
+                  {q.shuffledChoices.map((choice, idx) => (
+                    <span key={idx}>
+                      ({String.fromCharCode(65 + idx)}) {choice.text}
+                    </span>
+                  ))}
+                </div>
+                <p className="pl-4 text-sm text-gray-500">
+                  (來源：{q["來源"]})
+                </p>
+              </div>
+            </div>
+          </div>
+        ))
       )}
-
-      {filteredQuestions.map((q, index) => (
-        <div key={q["題號"] || index} className="border rounded-md p-4 shadow-sm">
-          <p className="font-semibold mb-2">
-            {q["題號"]}. {q["題目"]}
-          </p>
-          <ul className="list-disc pl-5 space-y-1">
-            {q.shuffledChoices.map((choice, idx) => (
-              <li key={idx} className={choice.isCorrect ? "text-green-600" : ""}>
-                {String.fromCharCode(65 + idx)}. {choice.text}
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
+    </div>
+  ))
+)}
+         </div>
+    </div>
     </div>
   );
 }

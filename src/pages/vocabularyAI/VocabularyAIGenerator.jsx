@@ -1,20 +1,21 @@
-// VocabularyAIGenerator.jsx
 import React, { useState } from "react";
 import { generateGPTQuestions } from "@/api/generate-vocab-questions-gpt";
+import { useNavigate } from "react-router-dom";
 
 export default function VocabularyAIGenerator() {
+  const navigate = useNavigate();
   const [inputWords, setInputWords] = useState("");
   const [level, setLevel] = useState("A1");
   const [countPerWord, setCountPerWord] = useState(1);
   const [minWords, setMinWords] = useState(10);
   const [maxWords, setMaxWords] = useState(20);
-  const [questions, setQuestions] = useState([]);
+  const [groupedQuestions, setGroupedQuestions] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const handleGenerate = async () => {
-    console.log("✅ 出題按鈕被點擊！");
     setLoading(true);
-    setQuestions([]);
+    setGroupedQuestions([]);
+
     if (
       minWords < 10 ||
       maxWords > 50 ||
@@ -26,13 +27,13 @@ export default function VocabularyAIGenerator() {
       setLoading(false);
       return;
     }
- 
+
     const wordList = inputWords
-      .split("\n")
+      .split('\n') 
       .map((w) => w.trim())
       .filter((w) => w.length > 0);
 
-    const allQuestions = [];
+    const groupResults = [];
 
     for (const entry of wordList) {
       const match = entry.match(/^(.+?)\s*\((.+?)\)/);
@@ -43,10 +44,9 @@ export default function VocabularyAIGenerator() {
 
       const word = match[1];
       const partOfSpeech = match[2];
-      console.log("🚀 準備出題：", word, partOfSpeech);
+      const questionList = [];
 
       for (let i = 0; i < countPerWord; i++) {
-        console.log("📮 呼叫 generateGPTQuestions 中...");
         const result = await generateGPTQuestions({
           word,
           partOfSpeech,
@@ -54,15 +54,13 @@ export default function VocabularyAIGenerator() {
           lengthRange: `${minWords}-${maxWords}`,
         });
 
-        console.log("📬 GPT 回傳結果：", result);
-
         if (result) {
           const { question, options, answer } = result;
           const labels = ["A", "B", "C", "D"];
           const shuffled = [...options].sort(() => Math.random() - 0.5);
           const correctIndex = shuffled.findIndex((o) => o === answer);
 
-          allQuestions.push({
+          questionList.push({
             displayLine1: `( ${labels[correctIndex]} ) ${question}`,
             displayLine2: shuffled
               .map((opt, i) => `(${labels[i]}) ${opt}`)
@@ -70,110 +68,128 @@ export default function VocabularyAIGenerator() {
           });
         }
       }
+
+      groupResults.push({
+        word,
+        partOfSpeech,
+        questions: questionList,
+      });
     }
 
-    setQuestions(allQuestions);
+    setGroupedQuestions(groupResults);
     setLoading(false);
   };
 
-  const numberOptions = Array.from({ length: 41 }, (_, i) => 10 + i);
-
   return (
-    <div className="p-4 relative">
-      {/* 固定上方按鈕區 */}
-      <button className="fixed top-4 left-4 bg-blue-600 text-white px-4 py-2 rounded z-10">
-        返回上一頁
-      </button>
-      <button className="fixed top-4 right-4 bg-blue-600 text-white px-4 py-2 rounded z-10">
-        匯出word
-      </button>
+    <div className="p-6 max-w-7xl mx-auto">
+
+      {/* 上方固定按鈕 */}
+      <div className="flex justify-between mb-4">
+      <button
+  className="bg-blue-600 text-white px-4 py-2 rounded"
+  onClick={() => navigate("/")}
+>
+  返回上一頁
+</button>
+        <button className="bg-blue-600 text-white px-4 py-2 rounded">匯出word</button>
+      </div>
 
       {/* 標題 */}
-      <h1 className="text-4xl font-bold text-center my-12">AI 單字選擇題</h1>
+      <h1 className="text-5xl font-bold text-center mb-8">AI 單字選擇題</h1>
 
-      <div className="grid grid-cols-2 gap-8">
-        {/* 左側輸入框 */}
+      {/* 主區塊 */}
+      <div className="grid grid-cols-1 lg:grid-cols-[4fr_7fr] gap-8">
+
+        {/* 左側輸入 + 設定 */}
         <div>
-          <label className="block mb-2 text-lg">輸入單字（<span className="text-gray-600">一行一個單字</span>）</label>
+          <label className="block mb-2 text-lg font-semibold">
+            輸入單字（<span className="text-gray-600">一行一個單字</span>）
+          </label>
           <textarea
-            className="w-full border rounded p-2 h-64 resize-none overflow-y-auto"
-            placeholder={"例：\ngenerate (v.) \nlanguage (n.) "}
+            className="w-full border rounded p-3 h-64 resize-none"
+            placeholder={"例：\ngenerate (v.)\nlanguage (n.)"}
             value={inputWords}
             onChange={(e) => setInputWords(e.target.value)}
           />
+
+          <div className="grid grid-cols-3 gap-4 mt-4 text-center">
+            <div>
+              <label className="block mb-1 font-semibold">CEFR等級</label>
+              <select
+                className="border rounded p-2 w-full text-center"
+                value={level}
+                onChange={(e) => setLevel(e.target.value)}
+              >
+                {["A1", "A2", "B1", "B2", "C1", "C2"].map((l) => (
+                  <option key={l} value={l}>
+                    {l}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block mb-1 font-semibold">每個單字題數</label>
+              <input
+                type="number"
+                min={1}
+                max={5}
+                className="border rounded p-2 w-full text-center"
+                value={countPerWord}
+                onChange={(e) => setCountPerWord(Number(e.target.value))}
+              />
+            </div>
+            <div>
+              <label className="block mb-1 font-semibold">題目字數</label>
+              <div className="flex items-center justify-center gap-1">
+                <input
+                  type="number"
+                  min={10}
+                  max={50}
+                  className="border rounded p-2 w-16 text-center"
+                  value={minWords}
+                  onChange={(e) => setMinWords(Number(e.target.value))}
+                />
+                <span className="mx-1">~</span>
+                <input
+                  type="number"
+                  min={10}
+                  max={50}
+                  className="border rounded p-2 w-16 text-center"
+                  value={maxWords}
+                  onChange={(e) => setMaxWords(Number(e.target.value))}
+                />
+              </div>
+            </div>
+          </div>
+
+          <button
+            className="mt-6 w-full bg-blue-600 text-white text-xl py-3 rounded font-bold"
+            onClick={handleGenerate}
+            disabled={loading}
+          >
+            {loading ? "出題中..." : "出題"}
+          </button>
         </div>
 
-        {/* 右側設定欄 */}
-        <div className="space-y-4">
-          <div>
-            <label className="block mb-1">CEFR 等級</label>
-            <select
-              className="w-full border rounded p-2"
-              value={level}
-              onChange={(e) => setLevel(e.target.value)}
-            >
-              {['A1','A2','B1','B2','C1','C2'].map(l => (
-                <option key={l} value={l}>{l}</option>
+        {/* 右側題目區 */}
+        <div className="h-[600px] overflow-y-auto pr-2 space-y-8 border-l pl-6">
+          {groupedQuestions.map((group, idx) => (
+            <div key={idx}>
+              <h2 className="text-xl font-bold mb-3">
+                {group.word} ({group.partOfSpeech})
+              </h2>
+              {group.questions.map((q, i) => (
+                <div
+                  key={i}
+                  className="border border-gray-300 rounded p-4 mb-3 bg-white shadow"
+                >
+                  <div>{i + 1}. {q.displayLine1}</div>
+                  <div className="mt-1 text-black">{q.displayLine2}</div>
+                </div>
               ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block mb-1">每個單字題數</label>
-            <select
-              className="w-full border rounded p-2"
-              value={countPerWord}
-              onChange={(e) => setCountPerWord(Number(e.target.value))}
-            >
-              {[1, 2, 3].map(n => (
-                <option key={n} value={n}>{n}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-          <label className="block mb-1">題目字數 (10~50字)</label>
-<div className="flex items-center gap-2">
-  <input
-    className="w-full border rounded p-2"
-    type="number"
-    value={minWords}
-    onChange={(e) => setMinWords(Number(e.target.value))}
-    min={10}
-    max={50}
-  />
-  <span>~</span>
-  <input
-    className="w-full border rounded p-2"
-    type="number"
-    value={maxWords}
-    onChange={(e) => setMaxWords(Number(e.target.value))}
-    min={10}
-    max={50}
-  />
-</div>
-
-          </div>
-
-          <div className="pt-4">
-            <button
-              className="bg-blue-600 text-white px-4 py-2 rounded w-full"
-              onClick={handleGenerate}
-              disabled={loading}
-            >
-              {loading ? "出題中..." : "出題"}
-            </button>
-          </div>
+            </div>
+          ))}
         </div>
-      </div>
-
-      <div className="mt-10 space-y-4">
-        {questions.map((q, index) => (
-          <div key={index} className="border p-4 rounded shadow">
-            <div>{index + 1}. {q.displayLine1}</div>
-            <div className="mt-1 text-gray-700">{q.displayLine2}</div>
-          </div>
-        ))}
       </div>
     </div>
   );
