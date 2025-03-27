@@ -79,24 +79,24 @@ export default function VocabularySearchPage() {
   return (
     <div className="relative h-screen overflow-hidden">
       {/* 中央標題 */}
-      <div className="w-full flex items-center justify-between px-6 py-6 border-b border-gray-300">
+      <div className="w-full flex items-center justify-between px-6 py-6">
   <h1 className="text-4xl font-bold text-center w-full">單字題庫</h1>
   <div className="absolute right-6">
-    <Button className="bg-blue-600 text-white">匯出 word</Button>
+    <Button className="bg-blue-600 hover:bg-blue-700 text-white text-lg px-5 py-2 rounded shadow">匯出 word</Button>
   </div>
 </div>
 
   
       <div className="flex h-full">
         {/* 左側輸入區塊 */}
-        <div className="w-1/3 p-6 border-r border-gray-300 flex flex-col">
+        <div className="w-1/3 p-6 border-r border-gray-400 flex flex-col">
           <p className="mb-2">輸入單字（⼀⾏⼀個字）</p>
           <textarea
-            className="h-60 resize-none border rounded-md p-2 overflow-y-auto"
+            className="w-full h-48 bg-gray-900 text-gray-100 placeholder-gray-400 border border-gray-600 p-4 rounded resize-none shadow"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
           />
-        <Button className="mt-4 bg-blue-600 text-white" onClick={handleSearch}>
+        <Button className="mt-4 w-40 text-xl px-5 py-2 bg-blue-500 hover:bg-blue-600 text-white shadow rounded" onClick={handleSearch}>
           出題
         </Button>
       </div>

@@ -84,18 +84,14 @@ export default function VocabularyAIGenerator() {
     <div className="p-6 max-w-7xl mx-auto">
 
       {/* 上方固定按鈕 */}
-      <div className="flex justify-between mb-4">
-      <button
-  className="bg-blue-600 text-white px-4 py-2 rounded"
-  onClick={() => navigate("/")}
->
-  返回上一頁
-</button>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded">匯出word</button>
-      </div>
+      <div className="flex justify-end mb-4">
+  <button className="bg-blue-600 text-white px-4 py-2 rounded">
+    匯出word
+  </button>
+</div>
 
       {/* 標題 */}
-      <h1 className="text-5xl font-bold text-center mb-8">AI 單字選擇題</h1>
+      <h1 className="text-4xl font-bold text-center mb-8">AI 單字選擇題</h1>
 
       {/* 主區塊 */}
       <div className="grid grid-cols-1 lg:grid-cols-[4fr_7fr] gap-8">
@@ -103,10 +99,10 @@ export default function VocabularyAIGenerator() {
         {/* 左側輸入 + 設定 */}
         <div>
           <label className="block mb-2 text-lg font-semibold">
-            輸入單字（<span className="text-gray-600">一行一個單字</span>）
+            輸入單字（<span className="text-gray-400">一行一個單字</span>）
           </label>
           <textarea
-            className="w-full border rounded p-3 h-64 resize-none"
+            className="w-full h-48 bg-gray-900 text-gray-100 placeholder-gray-400 border border-gray-600 p-4 rounded resize-none shadow"
             placeholder={"例：\ngenerate (v.)\nlanguage (n.)"}
             value={inputWords}
             onChange={(e) => setInputWords(e.target.value)}
@@ -114,9 +110,9 @@ export default function VocabularyAIGenerator() {
 
           <div className="grid grid-cols-3 gap-4 mt-4 text-center">
             <div>
-              <label className="block mb-1 font-semibold">CEFR等級</label>
+              <label className="block mb-1 font-semibold text-gray-100">CEFR等級</label>
               <select
-                className="border rounded p-2 w-full text-center"
+                className="bg-gray-900 text-gray-100 placeholder-gray-400 border border-gray-600 px-2 py-1 rounded w-full text-center"
                 value={level}
                 onChange={(e) => setLevel(e.target.value)}
               >
@@ -128,12 +124,12 @@ export default function VocabularyAIGenerator() {
               </select>
             </div>
             <div>
-              <label className="block mb-1 font-semibold">每個單字題數</label>
+              <label className="block mb-1 font-semibold text-gray-100">每個單字題數</label>
               <input
                 type="number"
                 min={1}
-                max={5}
-                className="border rounded p-2 w-full text-center"
+                max={3}
+                className="bg-gray-900 text-gray-100 border border-gray-600 px-2 py-1 rounded w-full text-center"
                 value={countPerWord}
                 onChange={(e) => setCountPerWord(Number(e.target.value))}
               />
@@ -145,16 +141,16 @@ export default function VocabularyAIGenerator() {
                   type="number"
                   min={10}
                   max={50}
-                  className="border rounded p-2 w-16 text-center"
+                  className="bg-gray-900 text-gray-100 border border-gray-600 px-2 py-1 rounded w-16 text-center"
                   value={minWords}
                   onChange={(e) => setMinWords(Number(e.target.value))}
                 />
-                <span className="mx-1">~</span>
+                <span className="mx-0">~</span>
                 <input
                   type="number"
                   min={10}
                   max={50}
-                  className="border rounded p-2 w-16 text-center"
+                  className="bg-gray-900 text-gray-100 border border-gray-600 px-2 py-1 rounded w-16 text-center"
                   value={maxWords}
                   onChange={(e) => setMaxWords(Number(e.target.value))}
                 />
@@ -163,7 +159,7 @@ export default function VocabularyAIGenerator() {
           </div>
 
           <button
-            className="mt-6 w-full bg-blue-600 text-white text-xl py-3 rounded font-bold"
+            className="mt-6 w-full w-40 text-xl px-5 py-2 bg-blue-500 hover:bg-blue-600 text-white shadow rounded"
             onClick={handleGenerate}
             disabled={loading}
           >
