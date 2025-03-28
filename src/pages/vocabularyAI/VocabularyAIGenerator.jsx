@@ -98,7 +98,7 @@ export default function VocabularyAIGenerator() {
 
         {/* 左側輸入 + 設定 */}
         <div>
-          <label className="block mb-2 text-lg font-semibold">
+          <label className="block mb-2 text-2xl font-semibold">
             輸入單字（<span className="text-gray-400">一行一個單字</span>）
           </label>
           <textarea
@@ -110,7 +110,7 @@ export default function VocabularyAIGenerator() {
 
           <div className="grid grid-cols-3 gap-4 mt-4 text-center">
             <div>
-              <label className="block mb-1 font-semibold text-gray-100">CEFR等級</label>
+              <label className="block mb-1 font-semibold text-gray-100 text-xl">CEFR</label>
               <select
                 className="bg-gray-900 text-gray-100 placeholder-gray-400 border border-gray-600 px-2 py-1 rounded w-full text-center"
                 value={level}
@@ -124,7 +124,7 @@ export default function VocabularyAIGenerator() {
               </select>
             </div>
             <div>
-              <label className="block mb-1 font-semibold text-gray-100">每個單字題數</label>
+              <label className="block mb-1 font-semibold text-gray-100 text-xl">每個單字題數</label>
               <input
                 type="number"
                 min={1}
@@ -135,7 +135,7 @@ export default function VocabularyAIGenerator() {
               />
             </div>
             <div>
-              <label className="block mb-1 font-semibold">題目字數</label>
+              <label className="block mb-1 font-semibold text-xl">題目字數</label>
               <div className="flex items-center justify-center gap-1">
                 <input
                   type="number"
@@ -177,10 +177,10 @@ export default function VocabularyAIGenerator() {
               {group.questions.map((q, i) => (
                 <div
                   key={i}
-                  className="border border-gray-300 rounded p-4 mb-3 bg-white shadow"
+                  className="border border-gray-600 bg-gray-900 text-gray-100 rounded p-4 mb-3 shadow"
                 >
                   <div>{i + 1}. {q.displayLine1}</div>
-                  <div className="mt-1 text-black">{q.displayLine2}</div>
+                  <div className="mt-1 text-gray-300 text-x1">{q.displayLine2}</div>
                 </div>
               ))}
             </div>

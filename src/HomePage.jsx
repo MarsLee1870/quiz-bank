@@ -48,12 +48,11 @@ export default function HomePage() {
           單字選擇題
         </Button>
       </Link>
-      <Button
-        onClick={handleNotReady}
-        className="w-40 text-xl px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white shadow rounded"
-      >
-        閱讀測驗
-      </Button>
+      <Link to="/readingAI">
+  <Button className="w-40 text-xl px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white shadow rounded">
+    閱讀測驗
+  </Button>
+</Link>
     </div>
   </div>
 </div>
