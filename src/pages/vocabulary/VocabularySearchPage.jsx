@@ -78,13 +78,21 @@ export default function VocabularySearchPage() {
   
   return (
     <div className="relative h-screen overflow-hidden">
-      {/* 中央標題 */}
-      <div className="w-full flex items-center justify-between px-6 py-6">
-  <h1 className="text-4xl font-bold text-center w-full">單字題庫</h1>
-  <div className="absolute right-6">
-    <Button className="bg-blue-600 hover:bg-blue-700 text-white text-lg px-5 py-2 rounded shadow">匯出 word</Button>
-  </div>
+      {/* 固定 Header */}
+<div className="sticky top-0 z-50 bg-gray-800 border-b border-white py-4 relative">
+
+{/* 中央標題 */}
+<h1 className="text-4xl font-bold text-center">單字題庫</h1>
+
+{/* 右上角按鈕用 absolute */}
+<div className="absolute right-6 top-1/2 -translate-y-1/2">
+  <Button className="bg-blue-600 hover:bg-blue-700 text-white text-lg px-5 py-2 rounded shadow">
+    匯出 Word
+  </Button>
 </div>
+
+</div>
+
 
   
       <div className="flex h-full">
