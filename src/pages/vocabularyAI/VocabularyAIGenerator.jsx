@@ -55,8 +55,10 @@ export default function VocabularyAIGenerator() {
         if (result) {
           console.log("✅ 後端回傳的 result：", JSON.stringify(result, null, 2));
           const { question, options, answer } = result;
-          const correctIndex = options.findIndex(opt => opt === answer);
-          const answerLetter = ["A", "B", "C", "D"][correctIndex]
+          const correctIndex = options.findIndex(opt =>
+            opt.trim().toLowerCase() === answer.trim().toLowerCase()
+          );
+          const answerLetter = ["A", "B", "C", "D"][correctIndex];
           questionList.push({
             question,
             options,
