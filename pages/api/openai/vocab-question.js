@@ -13,7 +13,6 @@ export default async function handler(req, res) {
       });
     }
   
-    // ✅ 英文版 Prompt，內含語意干擾限制
     const prompt = `
   You are an English test item writer.
   
@@ -40,8 +39,7 @@ export default async function handler(req, res) {
   `;
   
     try {
-      // ✅ 改用 fetch 呼叫 OpenAI API
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      const response = await globalThis.fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -65,7 +63,6 @@ export default async function handler(req, res) {
   
       console.log('✅ AI 原始輸出:', output);
   
-      // ✅ 格式解析維持不變
       const lines = output.split('\n').map(line => line.trim()).filter(Boolean);
       const answerLine = lines[0];
       const questionLine = lines[1];
