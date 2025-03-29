@@ -15,93 +15,123 @@ export default async function handler(req, res) {
   }
 
   const prompt = `
-You are an English test item writer.
+You are an experienced English test item writer.
 
-Generate one vocabulary multiple-choice question following these rules:
+Your task is to create one multiple-choice vocabulary question (MCQ) for English learners following these rules:
 
-[Rules]
-1. The question must be a complete English sentence with one blank (_____).
-2. The target word is: "${word}" (${partOfSpeech}).
-3. Sentence length must be between ${lengthRange.min} and ${lengthRange.max} words, change the subject, time, place if necessary.
-4. The target word must appear only once, in the most natural position.
-5. You must generate exactly four options: (A), (B), (C), and (D).
-6. All options must have the same part of speech and form as the target word.
-7. Three distractors must be grammatically correct but semantically incorrect or illogical when placed in the sentence.
-8. Output format must be exactly like this:
+[Requirements]
+1. The correct answer is a ${partOfSpeech}, and the intended answer is the word "${word}". However, DO NOT mention or display this word anywhere in the question or as the answer marker.
+2. Write a complete, natural, and meaningful English sentence with ONE blank (_____).
+3. The sentence should use vocabulary and grammar suitable for ${level} level learners, based on CEFR and commonly used wordlists (NGSL, Cambridge, COCA). Avoid rare, uncommon, or difficult words unless they are acceptable for ${level}.
+4. The sentence length must be between ${lengthRange.min} and ${lengthRange.max} words. Feel free to adjust subject, time, place, or context naturally.
+5. The question must contain exactly 4 answer choices:
+   (A), (B), (C), and (D).
+6. All choices must be the same part of speech (${partOfSpeech}).
+7. Three distractors should be grammatically correct but semantically incorrect or less suitable in the sentence.
+8. Randomly assign the correct answer to one of (A)~(D).
 
+[Formatting Example]
 1. ( B ) I was _____ for my mom after school.
          (A) kicking (B) waiting (C) facing (D) swimming
 
-[Notes]
-- Do not explain anything.
-- Do not include translations.
-- Output only the formatted question.
-- Answer must be marked using the correct letter (A/B/C/D), not the word itself.
+[Important Notes]
+- The answer marker MUST ONLY be (A), (B), (C), or (D).
+- NEVER use the correct word "${word}" as the answer marker.
+- The question must start with "1. ( X )" where X is A, B, C, or D, not a word.
+- Output ONLY the formatted question.
+- DO NOT add explanations, translations, comments, or any extra text.
 `;
 
-  try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
-        "OpenAI-Project": process.env.OPENAI_PROJECT_ID,
-      },
-      body: JSON.stringify({
-        model: "gpt-4-turbo",
-        messages: [{ role: "user", content: prompt }],
-      }),
-    });
 
-    const data = await response.json();
+try {
+  let finalQuestion = null;
+  let attempts = 0;
+  const maxAttempts = 3;
 
-    if (!response.ok) {
-      console.error("❌ OpenAI API error:", data);
-      return res.status(500).json({ error: data?.error?.message || 'OpenAI API failed.' });
-    }
+  while (!finalQuestion && attempts < maxAttempts) {
+      attempts++;
 
-    const output = data.choices[0]?.message?.content?.trim();
-    if (!output) return res.status(500).json({ error: "Empty response from OpenAI" });
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+              "OpenAI-Project": process.env.OPENAI_PROJECT_ID,
+          },
+          body: JSON.stringify({
+              model: "gpt-4-turbo",
+              messages: [{ role: "user", content: prompt }],
+          }),
+      });
 
-    console.log("✅ AI 原始輸出:", output);
+      const data = await response.json();
 
-    const lines = output.split("\n").map(line => line.trim()).filter(Boolean);
+      if (!response.ok) {
+          console.error(`❌ OpenAI API error (attempt ${attempts}):`, data);
+          continue;
+      }
 
-    const answerLine = lines[0];
-    const match = answerLine.match(/^1\.\s*\(\s*([A-D])\s*\)\s*(.+)$/);
-    if (!match) {
-      return res.status(500).json({ error: "Invalid format: answer line parsing failed." });
-    }
+      const output = data.choices[0]?.message?.content?.trim();
+      if (!output) {
+          console.warn(`❌ Empty response (attempt ${attempts})`);
+          continue;
+      }
 
-    const answerLetter = match[1];
-    const questionLine = match[2];
+      console.log(`✅ AI 原始輸出（第 ${attempts} 次）:`, output);
 
-    // 將所有行合成一行處理選項
-const optionText = lines.slice(1).join(' '); 
+      const lines = output.split("\n").map(line => line.trim()).filter(Boolean);
 
-const optionMatches = [...optionText.matchAll(/\([A-D]\)\s*([^\(]+)/g)];
+      // ✅ 嚴格檢查答案格式
+      const answerLine = lines[0];
+      const match = answerLine.match(/^1\.\s*\(\s*([A-D])\s*\)\s*(.+)$/);
 
-const options = optionMatches.map(m => m[1].trim());
+      if (!match) {
+          console.warn(`⚠️ 格式錯誤（第 ${attempts} 次）: 無法解析答案行`, answerLine);
+          continue;
+      }
 
-if (optionMatches.length !== 4) {
-    return res.status(500).json({ error: "選項數量錯誤，請檢查 AI 輸出", raw: optionText });
-}
+      const answerLetter = match[1];
+      const questionLine = match[2].trim(); 
+// 移除可能出現在開頭的 ( word ) 類型誤標記
 
+      // ✅ 強制只能是 A~D
+      if (!["A", "B", "C", "D"].includes(answerLetter)) {
+          console.warn(`⚠️ 非法答案（第 ${attempts} 次）: ${answerLetter}`);
+          continue;
+      }
 
-    if (!answerLetter || options.length !== 4) {
-      return res.status(500).json({ error: "Invalid format returned by OpenAI.", raw: { answerLine, options } });
-    }
+      // ✅ 解析選項
+      const optionText = lines.slice(1).join(" ");
+      const optionMatches = [...optionText.matchAll(/\(([A-D])\)\s*([^\(]+)/g)];
 
-    res.status(200).json({
-      question: questionLine,
-      options: options,
-      answer: answerLetter,
-    });
+      if (optionMatches.length !== 4) {
+          console.warn(`⚠️ 格式錯誤（第 ${attempts} 次）: 選項不足 4 個`, optionText);
+          continue;
+      }
+      const options = optionMatches.map(m => m[2].trim());
 
-  } catch (error) {
-    console.error("❌ API error:", error);
-    res.status(500).json({
-      error: error?.message || "Failed to generate question from OpenAI.",
-    });
+      finalQuestion = {
+          question: questionLine,
+          options,
+          answer: answerLetter,
+      };
   }
+
+  // ✅ 三次都失敗才回 error
+  if (!finalQuestion) {
+      console.error("❌ All attempts failed. No valid question generated.");
+      return res.status(500).json({
+          error: `Failed to generate a valid question after ${maxAttempts} attempts.`,
+      });
+  }
+
+  // ✅ 回傳成功的題目
+  res.status(200).json(finalQuestion);
+
+} catch (error) {
+  console.error("❌ API error:", error);
+  res.status(500).json({
+      error: error?.message || "Failed to generate question from OpenAI.",
+  });
+}
 }

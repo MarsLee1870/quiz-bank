@@ -53,16 +53,15 @@ export default function VocabularyAIGenerator() {
         });
 
         if (result) {
+          console.log("✅ 後端回傳的 result：", JSON.stringify(result, null, 2));
           const { question, options, answer } = result;
-          const labels = ["A", "B", "C", "D"];
-
-          // ✅ 正確顯示答案與選項
+          const correctIndex = options.findIndex(opt => opt === answer);
+          const answerLetter = ["A", "B", "C", "D"][correctIndex]
           questionList.push({
-            displayLine1: `( ${answer} ) ${question}`,
-            displayLine2: options.map((opt, i) => `(${labels[i]}) ${opt}`).join("     "),
-        });
-        
-
+            question,
+            options,
+            answerLetter, // A / B / C / D
+          });
         }
       }
 
@@ -165,12 +164,12 @@ export default function VocabularyAIGenerator() {
                   key={i}
                   className="border border-gray-600 bg-gray-900 text-gray-100 rounded p-4 mb-3 shadow"
                 >
-                  <div>{i + 1}. {q.displayLine1}</div>
+                  <div>{i + 1}. ( {q.answerLetter} ) {q.question}</div>
                   <div className="pl-6 flex gap-6 flex-wrap text-gray-300 text-x1">
-  {q.displayLine2.split(/\s{2,}/).map((opt, i) => (
-    <span key={i}>{opt}</span>
-  ))}
-</div>
+                    {q.options.map((opt, idx) => (
+                      <span key={idx}>({String.fromCharCode(65 + idx)}) {opt}</span>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>
