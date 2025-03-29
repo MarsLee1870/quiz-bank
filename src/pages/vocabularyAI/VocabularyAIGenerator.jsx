@@ -51,7 +51,7 @@ export default function VocabularyAIGenerator() {
           word,
           partOfSpeech,
           level,
-          lengthRange: `${minWords}-${maxWords}`,
+          lengthRange: { min: minWords, max: maxWords }, 
         });
 
         if (result) {
