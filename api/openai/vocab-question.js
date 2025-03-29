@@ -20,15 +20,15 @@ You are an experienced English test item writer.
 Your task is to create one multiple-choice vocabulary question (MCQ) for English learners following these rules:
 
 [Requirements]
-1. The correct answer is a ${partOfSpeech}, and the intended answer is the word "${word}". However, DO NOT mention or display this word anywhere in the question.
-2. Write a complete, natural, and meaningful English sentence with ONE blank (_____).
-3. The sentence should use vocabulary and grammar suitable for ${level} level learners, based on CEFR and commonly used wordlists (NGSL, Cambridge, COCA). Avoid rare, uncommon, or difficult words unless they are acceptable for ${level}.
-4. The sentence length must be between ${lengthRange.min} and ${lengthRange.max} words. Feel free to adjust subject, time, place, or context naturally.
-5. The question must contain exactly 4 answer choices:
+1. Make an English sentence with the word "${word}" based a various topics and then replace it with ONE blank (_____).
+2. The sentence should use vocabulary and grammar suitable for ${level} level learners, based on CEFR and commonly used wordlists (NGSL, Cambridge, COCA). Avoid rare, uncommon, or difficult words unless they are acceptable for ${level}.
+3. The sentence length must be between ${lengthRange.min} and ${lengthRange.max} words. Feel free to adjust subject, time, place, or context naturally.
+4. The question must contain exactly 4 answer choices:
    (A), (B), (C), and (D).
-6. All choices must be the same part of speech (${partOfSpeech}).
-7. Three distractors should be grammatically correct but semantically incorrect or less suitable in the sentence.
-8. Randomly assign the correct answer to one of (A)~(D).
+5. All choices must be the same part of speech (${partOfSpeech}).
+6. The three choices except the answer should be grammatically correct but semantically incorrect or less suitable in the sentence.
+7. Randomly assign the correct answer to one of (A)~(D).
+8. Check the structure and grammar of the sentence and make sure it is correct.
 
 [Output Format] (IMPORTANT)
 Output MUST be in the following JSON format without any extra explanation:
