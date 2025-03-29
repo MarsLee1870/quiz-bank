@@ -57,13 +57,11 @@ export default function VocabularyAIGenerator() {
           const labels = ["A", "B", "C", "D"];
 
           // ✅ 正確顯示答案與選項
-          const correctIndex = options.findIndex(opt => opt === answer);
-questionList.push({
-    displayLine1: `( ${labels[correctIndex]} ) ${question}`,
-    displayLine2: "    " +options
-      .map((opt, i) => `(${labels[i]}) ${opt}`)
-      .join("     "),
-});
+          questionList.push({
+            displayLine1: `( ${answer} ) ${question}`,
+            displayLine2: options.map((opt, i) => `(${labels[i]}) ${opt}`).join("     "),
+        });
+        
 
         }
       }
