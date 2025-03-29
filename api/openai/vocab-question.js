@@ -8,7 +8,7 @@ export default async function handler(req, res) {
 
   const { word, partOfSpeech, level, lengthRange } = req.body;
 
-  if (!word || !partOfSpeech || !lengthRange?.min || !lengthRange?.max) {
+  if (!word || !partOfSpeech || lengthRange?.min == null || lengthRange?.max == null) {
     return res.status(400).json({
       error: 'Missing required parameters: word, partOfSpeech, lengthRange',
     });
@@ -116,7 +116,9 @@ try {
           console.warn(`⚠️ 格式錯誤（第 ${attempts} 次）: 選項不足 4 個`, optionText);
           continue;
       }
-      const options = optionMatches.map(m => m[2].trim());
+      const options = optionMatches.map(m =>
+        m[2].trim().replace(/[.,!?;:"'()、。！？：；「」]/g, "")
+      );
 
       finalQuestion = {
           question: questionLine,
