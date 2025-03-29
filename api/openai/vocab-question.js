@@ -79,7 +79,7 @@ Generate one vocabulary multiple-choice question following these rules:
     // 將所有行合成一行處理選項
 const optionText = lines.slice(1).join(' '); 
 
-const optionMatches = [...optionText.matchAll(/\([A-D]\)\s*([^)]+)/g)];
+const optionMatches = [...optionText.matchAll(/\([A-D]\)\s*([^\(]+)/g)];
 
 const options = optionMatches.map(m => m[1].trim());
 
