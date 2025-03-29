@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+     "server": "tsx api/openai/vocab-question.ts"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.1.4",
@@ -21,7 +22,7 @@
     "express": "^4.21.2",
     "file-saver": "^2.0.5",
     "lucide-react": "^0.483.0",
-    "openai": "^4.89.0",
+    "openai": "^4.90.0",
     "path": "^0.12.7",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -35,6 +36,7 @@
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.3",
     "tailwindcss": "^3.4.17",
+    "tsx": "^4.19.3",
     "vite": "^6.2.2"
   }
 }

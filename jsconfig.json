@@ -5,6 +5,6 @@
         "@/*": ["src/*"]
       }
     },
-    "include": ["src", "api/openai/generate-vocab-questions-gpt.js"]
+    "include": ["src", "src/api/generate-vocab-questions.js"]
   }
   
