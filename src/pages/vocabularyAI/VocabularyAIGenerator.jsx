@@ -1,98 +1,184 @@
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Only POST requests are allowed.' });
-  }
+import React, { useState } from "react";
+import { generateGPTQuestions } from "@/api/generate-vocab-questions-gpt";
 
-  const { word, partOfSpeech, level, lengthRange } = req.body;
+export default function VocabularyAIGenerator() {
+  const [inputWords, setInputWords] = useState("");
+  const [level, setLevel] = useState("A1");
+  const [countPerWord, setCountPerWord] = useState(1);
+  const [minWords, setMinWords] = useState(10);
+  const [maxWords, setMaxWords] = useState(20);
+  const [groupedQuestions, setGroupedQuestions] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  if (!word || !partOfSpeech || !lengthRange?.min || !lengthRange?.max) {
-    return res.status(400).json({
-      error: 'Missing required parameters: word, partOfSpeech, lengthRange',
-    });
-  }
+  const handleGenerate = async () => {
+    setLoading(true);
+    setGroupedQuestions([]);
 
-  const prompt = `
-You are an English test item writer.
-
-Generate one vocabulary multiple-choice question following these rules:
-
-[Rules]
-1. The question must be a complete English sentence with one blank (_____).
-2. The target word is: "${word}" (${partOfSpeech}).
-3. Sentence length must be between ${lengthRange.min} and ${lengthRange.max} words, change the subject, time, place if necessary.
-4. The target word must appear only once, in the most natural position.
-5. You must generate exactly four options: (A), (B), (C), and (D).
-6. All options must have the same part of speech and form as the target word.
-7. Three distractors must be grammatically correct but semantically incorrect or illogical when placed in the sentence.
-8. Output format must be exactly like this:
-
-1. ( B ) I was _____ for my mom after school.
-(A) kicking (B) waiting (C) facing (D) swimming
-
-[Notes]
-- Do not explain anything.
-- Do not include translations.
-- Output only the formatted question.
-`;
-
-  try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4-turbo",
-        messages: [{ role: "user", content: prompt }],
-      }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error("❌ OpenAI API error:", data);
-      return res.status(500).json({ error: data?.error?.message || 'OpenAI API failed.' });
+    if (
+      minWords < 10 ||
+      maxWords > 50 ||
+      minWords > maxWords ||
+      !Number.isInteger(minWords) ||
+      !Number.isInteger(maxWords)
+    ) {
+      alert("❗ 題目字數必須是 10 到 50 的整數，且最小值不可大於最大值！");
+      setLoading(false);
+      return;
     }
 
-    const output = data.choices[0]?.message?.content?.trim();
-    if (!output) return res.status(500).json({ error: "Empty response from OpenAI" });
+    const wordList = inputWords
+      .split("\n")
+      .map((w) => w.trim())
+      .filter((w) => w.length > 0);
 
-    console.log("✅ AI 原始輸出:", output);
+    const groupResults = [];
 
-    const lines = output.split("\n").map((line) => line.trim()).filter(Boolean);
+    for (const entry of wordList) {
+      const match = entry.match(/^(.+?)\s*\((.+?)\)$/);
+      if (!match) {
+        console.warn("❌ 格式不符，略過：", entry);
+        continue;
+      }
 
-    // ✅ 改這裡：從第一行中抓出正確答案 + 題目句子
-    const answerLine = lines[0];
-    const match = answerLine.match(/^1\.\s*\(\s*([A-D])\s*\)\s*(.+)$/);
-    if (!match) {
-      return res.status(500).json({ error: "Invalid format: answer line parsing failed." });
+      const word = match[1];
+      const partOfSpeech = match[2];
+      const questionList = [];
+
+      for (let i = 0; i < countPerWord; i++) {
+        const result = await generateGPTQuestions({
+          word,
+          partOfSpeech,
+          level,
+          lengthRange: { min: minWords, max: maxWords },
+        });
+
+        if (result) {
+          const { question, options, answer } = result;
+          const labels = ["A", "B", "C", "D"];
+
+          // ✅ 正確顯示答案與選項
+          const correctIndex = options.findIndex(opt => opt === answer);
+questionList.push({
+    displayLine1: `( ${labels[correctIndex]} ) ${question}`,
+    displayLine2: "    " +options
+      .map((opt, i) => `(${labels[i]}) ${opt}`)
+      .join("     "),
+});
+
+        }
+      }
+
+      groupResults.push({
+        word,
+        partOfSpeech,
+        questions: questionList,
+      });
     }
 
-    const answerLetter = match[1];
-    const questionLine = match[2];
+    setGroupedQuestions(groupResults);
+    setLoading(false);
+  };
 
-    // ✅ 選項從第2行開始解析
-    const optionLines = lines.slice(1);
-    const options = optionLines.map((line) => {
-      const opt = line.match(/\([A-D]\)\s*(.+)/);
-      return opt ? opt[1].trim() : '';
-    });
+  return (
+    <div className="p-6 max-w-7xl mx-auto">
+      {/* 標題 */}
+      <h1 className="text-4xl font-bold text-center mb-8">AI 單字選擇題</h1>
 
-    if (!answerLetter || options.length !== 4) {
-      return res.status(500).json({ error: "Invalid format returned by OpenAI.", raw: { answerLine, options } });
-    }
+      <div className="grid grid-cols-1 lg:grid-cols-[4fr_7fr] gap-8">
+        {/* 左側輸入區 */}
+        <div>
+          <label className="block mb-2 text-2xl font-semibold">
+            輸入單字（<span className="text-gray-400">一行一個單字</span>）
+          </label>
+          <textarea
+            className="w-full h-48 bg-gray-900 text-gray-100 placeholder-gray-400 border border-gray-600 p-4 rounded resize-none shadow"
+            placeholder={"例：\ngenerate (v.)\nlanguage (n.)"}
+            value={inputWords}
+            onChange={(e) => setInputWords(e.target.value)}
+          />
 
-    res.status(200).json({
-      question: questionLine,
-      options: options,
-      answer: answerLetter,
-    });
+          {/* 設定區塊 */}
+          <div className="grid grid-cols-3 gap-4 mt-4 text-center">
+            <div>
+              <label className="block mb-1 font-semibold text-gray-100 text-xl">CEFR</label>
+              <select
+                className="bg-gray-900 text-gray-100 border border-gray-600 px-2 py-1 rounded w-full text-center"
+                value={level}
+                onChange={(e) => setLevel(e.target.value)}
+              >
+                {["A1", "A2", "B1", "B2", "C1", "C2"].map((l) => (
+                  <option key={l} value={l}>{l}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block mb-1 font-semibold text-gray-100 text-xl">每個單字題數</label>
+              <input
+                type="number"
+                min={1}
+                max={3}
+                className="bg-gray-900 text-gray-100 border border-gray-600 px-2 py-1 rounded w-full text-center"
+                value={countPerWord}
+                onChange={(e) => setCountPerWord(Number(e.target.value))}
+              />
+            </div>
+            <div>
+              <label className="block mb-1 font-semibold text-xl">題目字數</label>
+              <div className="flex items-center justify-center gap-1">
+                <input
+                  type="number"
+                  min={10}
+                  max={50}
+                  className="bg-gray-900 text-gray-100 border border-gray-600 px-2 py-1 rounded w-16 text-center"
+                  value={minWords}
+                  onChange={(e) => setMinWords(Number(e.target.value))}
+                />
+                <span className="mx-0">~</span>
+                <input
+                  type="number"
+                  min={10}
+                  max={50}
+                  className="bg-gray-900 text-gray-100 border border-gray-600 px-2 py-1 rounded w-16 text-center"
+                  value={maxWords}
+                  onChange={(e) => setMaxWords(Number(e.target.value))}
+                />
+              </div>
+            </div>
+          </div>
 
-  } catch (error) {
-    console.error("❌ API error:", error);
-    res.status(500).json({
-      error: error?.message || "Failed to generate question from OpenAI.",
-    });
-  }
+          <button
+            className="mt-6 w-full text-xl px-5 py-2 bg-blue-500 hover:bg-blue-600 text-white shadow rounded"
+            onClick={handleGenerate}
+            disabled={loading}
+          >
+            {loading ? "出題中..." : "出題"}
+          </button>
+        </div>
+
+        {/* 右側題目展示區 */}
+        <div className="h-[600px] overflow-y-auto pr-2 space-y-8 border-l pl-6">
+          {groupedQuestions.map((group, idx) => (
+            <div key={idx}>
+              <h2 className="text-xl font-bold mb-3">
+                {group.word} ({group.partOfSpeech})
+              </h2>
+              {group.questions.map((q, i) => (
+                <div
+                  key={i}
+                  className="border border-gray-600 bg-gray-900 text-gray-100 rounded p-4 mb-3 shadow"
+                >
+                  <div>{i + 1}. {q.displayLine1}</div>
+                  <div className="pl-6 flex gap-6 flex-wrap text-gray-300 text-x1">
+  {q.displayLine2.split(/\s{2,}/).map((opt, i) => (
+    <span key={i}>{opt}</span>
+  ))}
+</div>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }
