@@ -45,6 +45,7 @@ Generate one vocabulary multiple-choice question following these rules:
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+        "OpenAI-Project": process.env.OPENAI_PROJECT_ID,
       },
       body: JSON.stringify({
         model: "gpt-4-turbo",
