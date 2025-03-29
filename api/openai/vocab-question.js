@@ -80,51 +80,29 @@ try {
       }
 
       const output = data.choices[0]?.message?.content?.trim();
-      if (!output) {
-          console.warn(`❌ Empty response (attempt ${attempts})`);
-          continue;
-      }
+console.log(`✅ AI 原始輸出（第 ${attempts} 次）:`, output);
 
-      console.log(`✅ AI 原始輸出（第 ${attempts} 次）:`, output);
+try {
+    const json = JSON.parse(output);
 
-      const lines = output.split("\n").map(line => line.trim()).filter(Boolean);
+    if (!json.question || !json.choices || !json.answer) {
+        console.warn(`⚠️ 格式錯誤：缺少欄位`, json);
+        continue;
+    }
 
-      // ✅ 嚴格檢查答案格式
-      const answerLine = lines[0];
-      const match = answerLine.match(/^1\.\s*\(\s*([A-D])\s*\)\s*(.+)$/);
+    finalQuestion = {
+        question: json.question.trim(),
+        options: json.choices.map(opt =>
+            opt.trim().replace(/[.,!?;:"'()、。！？：；「」]/g, "")
+        ),
+        answer: json.answer.trim(), // "A", "B", "C" or "D"
+    };
 
-      if (!match) {
-          console.warn(`⚠️ 格式錯誤（第 ${attempts} 次）: 無法解析答案行`, answerLine);
-          continue;
-      }
+} catch (err) {
+    console.warn(`❌ JSON 解析失敗：`, err);
+    continue;
+}
 
-      const answerLetter = match[1];
-      const questionLine = match[2].trim(); 
-// 移除可能出現在開頭的 ( word ) 類型誤標記
-
-      // ✅ 強制只能是 A~D
-      if (!["A", "B", "C", "D"].includes(answerLetter)) {
-          console.warn(`⚠️ 非法答案（第 ${attempts} 次）: ${answerLetter}`);
-          continue;
-      }
-
-      // ✅ 解析選項
-      const optionText = lines.slice(1).join(" ");
-      const optionMatches = [...optionText.matchAll(/\(([A-D])\)\s*([^\(]+)/g)];
-
-      if (optionMatches.length !== 4) {
-          console.warn(`⚠️ 格式錯誤（第 ${attempts} 次）: 選項不足 4 個`, optionText);
-          continue;
-      }
-      const options = optionMatches.map(m =>
-        m[2].trim().replace(/[.,!?;:"'()、。！？：；「」]/g, "")
-      );
-
-      finalQuestion = {
-          question: questionLine,
-          options,
-          answer: answerLetter,
-      };
   }
 
   // ✅ 三次都失敗才回 error
