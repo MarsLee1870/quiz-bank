@@ -1,8 +1,9 @@
 // pages/api/openai/vocab-question.js
-import { OpenAI } from 'openai';
+import OpenAI from 'openai';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
+  baseURL: 'https://api.openai.com/v1', // ✅ 新版 SDK 必加
 });
 
 export default async function handler(req, res) {
@@ -70,13 +71,17 @@ I was _____ for my mom after school.
     }
 
     res.status(200).json({
-        question: questionLine,
-        options: options,    // 保留原始 A~D 選項順序
-        answer: answerLetter // 回傳正確答案位
-      });
-      
+      question: questionLine,
+      options: options,    // 保留原始 A~D 選項順序
+      answer: answerLetter // 回傳正確答案位
+    });
+
   } catch (error) {
     console.error('❌ API error:', error);
-    res.status(500).json({ error: 'Failed to generate question from OpenAI.' });
+
+    // ✅ 傳回錯誤訊息給前端（更好 debug）
+    res.status(500).json({
+      error: error?.message || 'Failed to generate question from OpenAI.'
+    });
   }
 }
