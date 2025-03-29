@@ -55,15 +55,24 @@ export default function VocabularyAIGenerator() {
         if (result) {
           console.log("✅ 後端回傳的 result：", JSON.stringify(result, null, 2));
           const { question, options, answer } = result;
-          const correctIndex = options.findIndex(opt =>
-            opt.trim().toLowerCase() === answer.trim().toLowerCase()
-          );
-          const answerLetter = ["A", "B", "C", "D"][correctIndex];
-          questionList.push({
-            question,
-            options,
-            answerLetter, // A / B / C / D
-          });
+
+// AI 沒有告訴你答案是 A / B / C / D，你自己來找
+const correctIndex = options.findIndex(opt => 
+    opt.trim().toLowerCase() === answer.trim().toLowerCase()
+);
+
+if (correctIndex === -1) {
+    console.error("❌ AI 回傳的答案不在選項內！", result);
+    continue; // 不處理這一題
+}
+
+const answerLetter = ["A", "B", "C", "D"][correctIndex];
+
+questionList.push({
+    question,
+    options,
+    answerLetter, // 自己組裝 ABCD
+});
         }
       }
 

@@ -20,7 +20,7 @@ You are an experienced English test item writer.
 Your task is to create one multiple-choice vocabulary question (MCQ) for English learners following these rules:
 
 [Requirements]
-1. The correct answer is a ${partOfSpeech}, and the intended answer is the word "${word}". However, DO NOT mention or display this word anywhere in the question or as the answer marker.
+1. The correct answer is a ${partOfSpeech}, and the intended answer is the word "${word}". However, DO NOT mention or display this word anywhere in the question.
 2. Write a complete, natural, and meaningful English sentence with ONE blank (_____).
 3. The sentence should use vocabulary and grammar suitable for ${level} level learners, based on CEFR and commonly used wordlists (NGSL, Cambridge, COCA). Avoid rare, uncommon, or difficult words unless they are acceptable for ${level}.
 4. The sentence length must be between ${lengthRange.min} and ${lengthRange.max} words. Feel free to adjust subject, time, place, or context naturally.
@@ -30,18 +30,26 @@ Your task is to create one multiple-choice vocabulary question (MCQ) for English
 7. Three distractors should be grammatically correct but semantically incorrect or less suitable in the sentence.
 8. Randomly assign the correct answer to one of (A)~(D).
 
-[Formatting Example]
-1. ( B ) I was _____ for my mom after school.
-         (A) kicking (B) waiting (C) facing (D) swimming
+[Output Format] (IMPORTANT)
+Output MUST be in the following JSON format without any extra explanation:
 
-[Important Notes]
-- The answer marker MUST ONLY be (A), (B), (C), or (D).
-- NEVER use the correct word "${word}" as the answer marker.
-- The question must start with "1. ( X )" where X is A, B, C, or D, not a word.
-- Output ONLY the formatted question.
-- DO NOT add explanations, translations, comments, or any extra text.
+{
+  "question": "The sentence with a blank (_____)",
+  "choices": ["choice A", "choice B", "choice C", "choice D"],
+  "answer": "B"
+}
+
+[Notes]
+- DO NOT add explanations, translations, comments, or extra text.
+- DO NOT output anything except the valid JSON.
+
+Example:
+{
+  "question": "I was _____ for my mom after school.",
+  "choices": ["kicking", "waiting", "facing", "swimming"],
+  "answer": "B"
+}
 `;
-
 
 try {
   let finalQuestion = null;
