@@ -76,11 +76,17 @@ Generate one vocabulary multiple-choice question following these rules:
     const answerLetter = match[1];
     const questionLine = match[2];
 
-    const optionLines = lines.slice(1);
-    const options = optionLines.map((line) => {
-      const opt = line.match(/\([A-D]\)\s*(.+)/);
-      return opt ? opt[1].trim() : '';
-    });
+    // 將所有行合成一行處理選項
+const optionText = lines.slice(1).join(' '); 
+
+const optionMatches = [...optionText.matchAll(/\([A-D]\)\s*([^)]+)/g)];
+
+const options = optionMatches.map(m => m[1].trim());
+
+if (optionMatches.length !== 4) {
+    return res.status(500).json({ error: "選項數量錯誤，請檢查 AI 輸出", raw: optionText });
+}
+
 
     if (!answerLetter || options.length !== 4) {
       return res.status(500).json({ error: "Invalid format returned by OpenAI.", raw: { answerLine, options } });
