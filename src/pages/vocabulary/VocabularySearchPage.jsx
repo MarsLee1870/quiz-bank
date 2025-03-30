@@ -3,6 +3,7 @@ import { getVocabularyData } from "@/lib/getVocabularyData";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { exportVocabularyDocx } from "@/lib/exportDocx";
 
 function shuffleArray(array) {
   const shuffled = [...array];
@@ -12,7 +13,7 @@ function shuffleArray(array) {
   }
   return shuffled;
 }
-
+ 
 export default function VocabularySearchPage() {
   const [allQuestions, setAllQuestions] = useState([]);
   const [inputText, setInputText] = useState("");
@@ -86,9 +87,28 @@ export default function VocabularySearchPage() {
 
 {/* 匯出按鈕 */}
 <div className="absolute right-6 top-1/2 -translate-y-1/2">
-  <Button className="bg-blue-600 hover:bg-blue-700 text-white text-lg px-5 py-2 rounded shadow">
-    匯出 Word
-  </Button>
+<Button
+  className="bg-blue-600 hover:bg-blue-700 text-white text-lg px-5 py-2 rounded shadow"
+  onClick={() => {
+    const selected = [];
+    Object.values(groupedQuestions).forEach((questions) => {
+      if (questions) {
+        questions.forEach((q) => {
+          if (selectedQuestions[q["題號"]]) {
+            selected.push(q);
+          }
+        });
+      }
+    });
+    exportVocabularyDocx(selected); // ✅ 新的，直接輸出 docx
+  }}
+>
+  匯出 Word
+</Button>
+
+
+
+
 </div>
 
 </div>
@@ -111,6 +131,35 @@ export default function VocabularySearchPage() {
 
       {/* 右側題目顯示區塊 */}
       <div className="w-2/3 p-6 overflow-y-auto relative h-[calc(100vh-96px)]">
+      {/* 題目上方的功能按鈕 */}
+<div className="mb-4 flex gap-4">
+  <Button
+    className="bg-blue-500 hover:bg-blue-600 text-white"
+    onClick={() => {
+      const newSelected = {};
+      Object.values(groupedQuestions).forEach((questions) => {
+        if (questions) {
+          questions.forEach((q) => {
+            newSelected[q["題號"]] = true;
+          });
+        }
+      });
+      setSelectedQuestions(newSelected);
+    }}
+  >
+    全部勾選
+  </Button>
+
+  <Button
+    className="bg-blue-500 hover:bg-blue-600 text-white"
+    onClick={() => {
+      setSelectedQuestions({});
+    }}
+  >
+    取消勾選
+  </Button>
+</div>
+
       {Object.keys(groupedQuestions).length === 0 ? (
   <p className="text-gray-500">請先輸入單字並點擊「出題」</p>
 ) : (

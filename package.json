@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-     "server": "tsx api/openai/vocab-question.ts"
+    "server": "tsx api/openai/vocab-question.ts"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.1.4",
