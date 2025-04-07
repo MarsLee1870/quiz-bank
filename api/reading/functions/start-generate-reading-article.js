@@ -35,12 +35,13 @@ export default async function handler(req, res) {
     };
 
     if (isVercel) {
-        console.log("🪄 Redis URL:", process.env.UPSTASH_REDIS_REST_URL);
-        console.log("🪄 Redis Token:", process.env.UPSTASH_REDIS_REST_TOKEN);
-      // Vercel 上用 Upstash REST API
       const url = process.env.UPSTASH_REDIS_REST_URL;
       const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-
+    
+      console.log("🚀 Redis REST URL:", url);
+      console.log("🔑 Redis REST TOKEN:", token);
+      console.log("📦 Redis payload:", taskPayload);
+    
       const redisResponse = await fetch(`${url}/lpush/task_queue`, {
         method: "POST",
         headers: {
@@ -49,14 +50,15 @@ export default async function handler(req, res) {
         },
         body: JSON.stringify([JSON.stringify(taskPayload)]),
       });
-
+    
       const result = await redisResponse.json();
       console.log("✅ Redis response (Vercel):", result);
+    
     } else {
-      // Local 用 ioredis TCP
       await redis.lpush("task_queue", JSON.stringify(taskPayload));
       console.log("✅ Redis response (Local): 已推入 queue");
     }
+    
 
     return res.status(200).json({ taskId });
   } catch (error) {
