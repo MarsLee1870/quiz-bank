@@ -35,6 +35,8 @@ export default async function handler(req, res) {
     };
 
     if (isVercel) {
+        console.log("🪄 Redis URL:", process.env.UPSTASH_REDIS_REST_URL);
+        console.log("🪄 Redis Token:", process.env.UPSTASH_REDIS_REST_TOKEN);
       // Vercel 上用 Upstash REST API
       const url = process.env.UPSTASH_REDIS_REST_URL;
       const token = process.env.UPSTASH_REDIS_REST_TOKEN;
