@@ -50,9 +50,15 @@ export default async function handler(req, res) {
         },
         body: JSON.stringify([JSON.stringify(taskPayload)]),
       });
-    
-      const result = await redisResponse.json();
-      console.log("✅ Redis response (Vercel):", result);
+      
+      const text = await redisResponse.text();
+      console.log("📡 Status Code:", redisResponse.status);
+      console.log("📄 Raw Response Text:", text);
+      
+      if (!redisResponse.ok) {
+        throw new Error(`Upstash Redis API error: ${redisResponse.status} - ${text}`);
+      }
+      
     
     } else {
       await redis.lpush("task_queue", JSON.stringify(taskPayload));
