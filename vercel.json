@@ -1,8 +1,9 @@
 {
   "version": 2,
+  "framework": null,
   "builds": [
     {
-      "src": "api/reading/functions/**/*.js",
+      "src": "api/**/*.js",
       "use": "@vercel/node"
     },
     {
@@ -12,8 +13,8 @@
   ],
   "routes": [
     {
-      "src": "/api/reading/functions/(.*)",
-      "dest": "/api/reading/functions/$1"
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
     },
     {
       "src": "/(.*)",

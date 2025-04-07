@@ -9,7 +9,10 @@ export default async function handler(req, res) {
     if (!taskId) return res.status(400).json({ error: "Missing taskId" });
 
     const status = await redis.get(`task:${taskId}:status`);
-    if (!status) return res.status(404).json({ status: "not_found" });
+    if (!status) {
+        return res.json({ status: "not_found" }); // ✅ 改這裡就對了
+    }
+    
     if (status !== "done") return res.status(200).json({ status });
 
     const result = await redis.get(`task:${taskId}:result`);

@@ -1,6 +1,7 @@
+// vite.config.js
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import path from 'node:path' // 保留
+import path from 'node:path'
 
 export default defineConfig({
   plugins: [react()],
@@ -13,10 +14,9 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'http://localhost:3001',   // 讓你的 server API 正確接收
+        target: 'http://localhost:8787', // 跑 vercel dev 的 port
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '/api'),
       },
     },
-  },
+  }
 })
