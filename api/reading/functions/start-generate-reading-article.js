@@ -59,6 +59,10 @@ export default async function handler(req, res) {
     return res.status(200).json({ taskId });
   } catch (error) {
     console.error("❌ start-generate-reading-article 錯誤：", error);
+    console.error("❌ start-generate-reading-article 錯誤：", error);
+console.error("🔍 error.message:", error.message);
+console.error("📄 error.stack:", error.stack);
+
     return res.status(500).json({
       error: "伺服器內部錯誤",
       detail: error.message,
