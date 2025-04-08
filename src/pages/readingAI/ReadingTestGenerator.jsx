@@ -238,7 +238,7 @@ saveAs(blob, filename);
     };
      
     const getWordCount = (text) => {
-        return text.trim() ? text.trim().split(/\s+/).length : 0;
+      return text?.trim() ? text.trim().split(/\s+/).length : 0;
       };
     const [typeCounts, setTypeCounts] = useState({
         主旨型: "",
@@ -271,7 +271,7 @@ saveAs(blob, filename);
     
         // 🐞 建議加一行 debug 看 payload 是否正確
         console.log("送出 payload：", payload);
-        const res = await fetch(`/api/reading/functions/start-generate-reading-article`, {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/reading/functions/start-generate-reading-article`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
@@ -300,7 +300,7 @@ try {
 let retryCount = 0;
 const interval = setInterval(async () => {
     try {
-      const check = await fetch(`/api/reading/functions/get-article-result?taskId=${taskId}`);
+      const check = await fetch(`${import.meta.env.VITE_API_URL}/api/reading/functions/get-article-result?taskId=${taskId}`);
       if (!check.ok) throw new Error("查無任務");
 
       const data = await check.json();
@@ -366,7 +366,7 @@ if (totalTypeCount === 0) {
     questionConfig.types[type] = perType + (i < remainder ? 1 : 0);
   });
 }
-    const res = await fetch(`/api/reading/functions/start-generate-questions`, {
+const res = await fetch(`${import.meta.env.VITE_API_URL}/api/reading/functions/start-generate-questions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ article, questionConfig }),
@@ -383,7 +383,7 @@ if (totalTypeCount === 0) {
     const { taskId } = await res.json();
 
     const interval = setInterval(async () => {
-        const check = await fetch(`/api/reading/functions/get-question-result?taskId=${taskId}`);
+      const check = await fetch(`${import.meta.env.VITE_API_URL}/api/reading/functions/get-question-result?taskId=${taskId}`);
         const data = await check.json();
 
         if (data.status === "done") {
