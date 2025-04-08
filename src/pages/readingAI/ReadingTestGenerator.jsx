@@ -64,7 +64,7 @@ export default function ReadingTestGenerator() {
                       new TextRun({
                         text: para.trim(),
                         font: "Times New Roman",
-                        size: 28,
+                        size: 32,
                       }),
                     ],
                     spacing: { line: 276 },
@@ -656,7 +656,7 @@ const formatQuestions = (raw) => {
 </Button>
   </div>
 
-  <div className="border h-[620px] overflow-y-auto p-2 rounded">
+  <div className="border h-[570px] overflow-y-auto p-2 rounded">
     <div className="font-['Arial'] text-lg leading-relaxed">
       {questions
         ? formatQuestions(questions)
