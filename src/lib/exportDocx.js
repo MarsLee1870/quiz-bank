@@ -16,7 +16,7 @@ export async function exportVocabularyDocx(questions) {
             },
             children: questions.map((q, idx) => {
                 // ===== 可調參數 =====
-const questionNumberWidth = cm(2); // 題號欄寬
+const questionNumberWidth = cm(2.5); // 題號欄寬
 const choiceCellWidths = [cm(3.5), cm(3.5), cm(3.5), cm(3.5)]; // 四個選項欄寬，可個別微調
 const firstEmptyCellWidth = cm(2); // 選項行的第一格空白欄寬，可調整選項距離題號的距離
 const questionIndent = 50; // 題目左縮排，可微調題目離題號的距離
