@@ -48,7 +48,9 @@ export default async function handler(req, res) {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify([JSON.stringify(taskPayload)]),
+        body: JSON.stringify({
+          value: JSON.stringify(taskPayload)
+        }),
       });
       
       const text = await redisResponse.text();
@@ -58,7 +60,7 @@ export default async function handler(req, res) {
       if (!redisResponse.ok) {
         throw new Error(`Upstash Redis API error: ${redisResponse.status} - ${text}`);
       }
-      
+           
     
     } else {
       await redis.lpush("task_queue", JSON.stringify(taskPayload));
