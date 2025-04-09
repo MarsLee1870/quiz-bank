@@ -43,7 +43,7 @@ export default function VocabularyAIGenerator() {
     }
   
     // ✅ 發送任務
-    const res = await fetch(`${BASE}/api/vocab/functions/start-generate-questions`, {
+    const res = await fetch(`${BASE}/api/vocab/functions/start-generate-vocab-questions`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
