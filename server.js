@@ -146,31 +146,17 @@ app.post('/api/vocab/functions/start-generate-vocab-questions', async (req, res)
             payload: { words, level, countPerWord, lengthRange },
         };
 
-        const url = process.env.UPSTASH_REDIS_REST_URL;
-        const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+        await redis.rpush("vocab_queue", JSON.stringify(task));
 
-        const redisResponse = await fetch(`${url}/lpush/vocab_queue`, {
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ value: JSON.stringify(task) }),
-        });
-
-        if (!redisResponse.ok) {
-            const text = await redisResponse.text();
-            console.error("❌ Upstash 錯誤：", text);
-            return res.status(500).json({ error: "Failed to enqueue task (Upstash)" });
-        }
-
-        console.log("✅ 單字任務已送入 Upstash queue", taskId);
+        console.log("✅ 單字任務已送入 Redis queue", taskId);
         res.json({ taskId });
+
     } catch (err) {
         console.error("❌ Redis 任務推送失敗（單字）", err);
         res.status(500).json({ error: "Queue error", detail: err.message });
     }
 });
+
 
 app.get('/api/vocab/functions/get-question-result', async (req, res) => {
     const { taskId } = req.query;
