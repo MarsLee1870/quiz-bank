@@ -1,8 +1,0 @@
-{
-    "functions": {
-      "api/vocab/start-generate-vocab-questions.js": {
-        "runtime": "nodejs18.x"
-      }
-    }
-  }
-  
