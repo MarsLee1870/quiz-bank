@@ -1,0 +1,3 @@
+# .vercelignore 應該長這樣（如果有就跳過）
+node_modules/
+*.log
