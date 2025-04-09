@@ -18,7 +18,7 @@ import Redis from 'ioredis';
 const redis = new Redis(process.env.REDIS_URL, {
     tls: { rejectUnauthorized: false } // Upstash 專用設定
 });
-
+console.log("🔍 redis.url = ", process.env.REDIS_URL);
 // ------------------------------
 // ✅ 4. Express 初始化
 // ------------------------------
@@ -126,7 +126,51 @@ app.get('/api/reading/functions/get-question-result', async (req, res) => {
     }
 });
 
+import { v4 as uuidv4 } from 'uuid';
 
+app.post('/api/vocab/functions/start-generate-questions', async (req, res) => {
+    try {
+        const { words, level, countPerWord, lengthRange } = req.body;
+
+        if (!words || !Array.isArray(words) || !level || !countPerWord || !lengthRange) {
+            return res.status(400).json({ error: 'Missing parameters' });
+        }
+
+        const taskId = uuidv4();
+        const task = {
+            taskId,
+            type: "generate-vocab-questions",
+            payload: { words, level, countPerWord, lengthRange },
+        };
+
+        await redis.rpush("vocab_queue", JSON.stringify(task));
+
+        console.log("✅ 單字任務已送入 Redis queue", taskId);
+        res.json({ taskId });
+    } catch (err) {
+        console.error("❌ Redis 任務推送失敗（單字）", err);
+        res.status(500).json({ error: "Queue error", detail: err.message });
+    }
+});
+
+app.get('/api/vocab/functions/get-question-result', async (req, res) => {
+    const { taskId } = req.query;
+    if (!taskId) return res.status(400).json({ error: "Missing taskId" });
+  
+    try {
+      const status = await redis.get(`task:${taskId}:status`);
+      const result = await redis.get(`task:${taskId}:result`);
+  
+      if (!status) {
+        return res.json({ status: "not_found" });
+      }
+  
+      res.json({ status, data: JSON.parse(result) }); // ✅ 前端會抓 data
+    } catch (err) {
+      console.error("❌ Redis 查詢失敗（單字）", err);
+      res.status(500).json({ error: "Redis error", detail: err.message });
+    }
+  });
 
 // ------------------------------
 // ✅ 啟動 Server

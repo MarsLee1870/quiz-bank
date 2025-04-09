@@ -9,11 +9,12 @@ export default function VocabularyAIGenerator() {
   const [maxWords, setMaxWords] = useState(20);
   const [groupedQuestions, setGroupedQuestions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const BASE = import.meta.env.VITE_API_URL;
 
   const handleGenerate = async () => {
     setLoading(true);
     setGroupedQuestions([]);
-
+  
     if (
       minWords < 10 ||
       maxWords > 50 ||
@@ -25,67 +26,77 @@ export default function VocabularyAIGenerator() {
       setLoading(false);
       return;
     }
-
+  
     const wordList = inputWords
       .split("\n")
       .map((w) => w.trim())
       .filter((w) => w.length > 0);
-
-    const groupResults = [];
-
+  
+    const words = [];
     for (const entry of wordList) {
       const match = entry.match(/^(.+?)\s*\((.+?)\)$/);
       if (!match) {
         console.warn("❌ 格式不符，略過：", entry);
         continue;
       }
-
-      const word = match[1];
-      const partOfSpeech = match[2];
-      const questionList = [];
-
-      for (let i = 0; i < countPerWord; i++) {
-        const result = await generateGPTQuestions({
-          word,
-          partOfSpeech,
-          level,
-          lengthRange: { min: minWords, max: maxWords },
-        });
-
-        if (result) {
-          console.log("✅ 後端回傳的 result：", JSON.stringify(result, null, 2));
-          const { question, options, answer } = result;
-
-// AI 沒有告訴你答案是 A / B / C / D，你自己來找
-const correctIndex = options.findIndex(opt => 
-    opt.trim().toLowerCase() === answer.trim().toLowerCase()
-);
-
-if (correctIndex === -1) {
-    console.error("❌ AI 回傳的答案不在選項內！", result);
-    continue; // 不處理這一題
-}
-
-const answerLetter = ["A", "B", "C", "D"][correctIndex];
-
-questionList.push({
-    question,
-    options,
-    answerLetter, // 自己組裝 ABCD
-});
-        }
-      }
-
-      groupResults.push({
-        word,
-        partOfSpeech,
-        questions: questionList,
-      });
+      words.push({ word: match[1], partOfSpeech: match[2] });
     }
-
-    setGroupedQuestions(groupResults);
+  
+    // ✅ 發送任務
+    const res = await fetch(`${BASE}/api/vocab/functions/start-generate-questions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        words,
+        level,
+        countPerWord,
+        lengthRange: { min: minWords, max: maxWords },
+      }),
+    });
+    
+    if (!res.ok) {
+      const text = await res.text();
+      console.error("❌ 伺服器錯誤回應：", text);
+      alert("❌ 錯誤！請查看 Console");
+      setLoading(false);
+      return;
+    }
+    
+    const { taskId } = await res.json();
+    if (!taskId) {
+      alert("❌ 無法送出任務");
+      setLoading(false);
+      return;
+    }
+    
+  
+    // ✅ polling 拿結果
+    let tries = 0;
+    let maxTries = 30;
+    let resultJson = null;
+  
+    while (tries < maxTries) {
+      const pollRes = await fetch(`${BASE}/api/vocab/functions/get-question-result?taskId=${taskId}`);
+      if (pollRes.status === 200) {
+             resultJson = await pollRes.json();
+             if (resultJson.status === "done") {
+               break;
+             }
+      }
+  
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      tries++;
+    }
+  
+    if (!resultJson || !resultJson.data) {
+      alert("❌ 生成超時，請稍後再試！");
+    } else {
+      setGroupedQuestions(resultJson.data);
+    }
+  
     setLoading(false);
   };
+ 
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -155,36 +166,43 @@ questionList.push({
           </div>
 
           <button
-            className="mt-6 w-full text-xl px-5 py-2 bg-blue-500 hover:bg-blue-600 text-white shadow rounded"
-            onClick={handleGenerate}
-            disabled={loading}
-          >
-            {loading ? "出題中..." : "出題"}
-          </button>
+  className={`mt-6 w-full text-xl px-5 py-2 rounded shadow text-white transition ${
+    loading
+      ? "bg-blue-400 animate-pulse cursor-not-allowed"
+      : "bg-blue-500 hover:bg-blue-600"
+  }`}
+  onClick={handleGenerate}
+  disabled={loading}
+>
+  {loading ? "生成中..." : "出題"}
+</button>
+
         </div>
 
         {/* 右側題目展示區 */}
         <div className="h-[600px] overflow-y-auto pr-2 space-y-8 border-l pl-6">
-          {groupedQuestions.map((group, idx) => (
-            <div key={idx}>
-              <h2 className="text-xl font-bold mb-3">
-                {group.word} ({group.partOfSpeech})
-              </h2>
-              {group.questions.map((q, i) => (
-                <div
-                  key={i}
-                  className="border border-gray-600 bg-gray-900 text-gray-100 rounded p-4 mb-3 shadow"
-                >
-                  <div>{i + 1}. ( {q.answerLetter} ) {q.question}</div>
-                  <div className="pl-6 flex gap-6 flex-wrap text-gray-300 text-x1">
-                    {q.options.map((opt, idx) => (
-                      <span key={idx}>({String.fromCharCode(65 + idx)}) {opt}</span>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ))}
+        {Array.isArray(groupedQuestions) &&
+  groupedQuestions.map((group, idx) => (
+    <div key={idx}>
+      <h2 className="text-xl font-bold mb-3">
+        {group.word} ({group.partOfSpeech})
+      </h2>
+      {group.questions.map((q, i) => (
+        <div
+          key={i}
+          className="border border-gray-600 bg-gray-900 text-gray-100 rounded p-4 mb-3 shadow"
+        >
+          <div>{i + 1}. ( {q.answerLetter} ) {q.question}</div>
+          <div className="pl-6 flex gap-6 flex-wrap text-gray-300 text-x1">
+            {q.options.map((opt, idx) => (
+              <span key={idx}>({String.fromCharCode(65 + idx)}) {opt}</span>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+))}
+
         </div>
       </div>
     </div>
