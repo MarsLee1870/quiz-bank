@@ -1,0 +1,8 @@
+{
+    "functions": {
+      "api/vocab/*.js": {
+        "runtime": "nodejs18.x"
+      }
+    }
+  }
+  
