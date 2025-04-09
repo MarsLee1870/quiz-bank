@@ -43,7 +43,7 @@ export default function VocabularyAIGenerator() {
     }
   
     // ✅ 發送任務
-    const res = await fetch(`${BASE}/api/vocab/functions/start-generate-vocab-questions`, {
+    const res = await fetch(`${BASE}/api/vocab/start-generate-vocab-questions`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -76,7 +76,7 @@ export default function VocabularyAIGenerator() {
     let resultJson = null;
   
     while (tries < maxTries) {
-      const pollRes = await fetch(`${BASE}/api/vocab/functions/get-question-result?taskId=${taskId}`);
+      const pollRes = await fetch(`${BASE}/api/vocab/get-question-result?taskId=${taskId}`);
       if (pollRes.status === 200) {
              resultJson = await pollRes.json();
              if (resultJson.status === "done") {
