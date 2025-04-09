@@ -1,4 +1,14 @@
 import { v4 as uuidv4 } from 'uuid';
+import Redis from "ioredis";
+
+const isVercel = process.env.VERCEL === "1";
+let redis = null;
+
+if (!isVercel) {
+  redis = new Redis(process.env.REDIS_URL, {
+    tls: { rejectUnauthorized: false },
+  });
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -24,18 +34,35 @@ export default async function handler(req, res) {
     },
   };
 
-  const redisRes = await fetch(`https://us1-rest.api.upstash.io/lpush/task_queue`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify([JSON.stringify(task)]),
-  });
+  try {
+    if (isVercel) {
+      const url = process.env.UPSTASH_REDIS_REST_URL;
+      const token = process.env.UPSTASH_REDIS_REST_TOKEN;
 
-  if (!redisRes.ok) {
-    return res.status(500).json({ error: 'Failed to enqueue task' });
+      const redisResponse = await fetch(`${url}/lpush/vocab_queue`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          value: JSON.stringify(task)
+        }),
+      });
+
+      if (!redisResponse.ok) {
+        const text = await redisResponse.text();
+        console.error("❌ Upstash 錯誤：", text);
+        return res.status(500).json({ error: "Failed to enqueue task (Upstash)" });
+      }
+    } else {
+      await redis.lpush("vocab_queue", JSON.stringify(task));
+      console.log("✅ Local Redis：已推入 vocab_queue");
+    }
+
+    res.status(200).json({ taskId });
+  } catch (error) {
+    console.error("❌ Enqueue 錯誤：", error);
+    res.status(500).json({ error: "Queue error", detail: error.message });
   }
-
-  res.status(200).json({ taskId });
 }

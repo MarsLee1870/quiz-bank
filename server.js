@@ -11,6 +11,7 @@ import express from 'express';
 import cors from 'cors';
 import { OpenAI } from 'openai';
 import Redis from 'ioredis';
+import { v4 as uuidv4 } from 'uuid';
 
 // ------------------------------
 // ✅ 3. Redis 初始化
@@ -19,6 +20,7 @@ const redis = new Redis(process.env.REDIS_URL, {
     tls: { rejectUnauthorized: false } // Upstash 專用設定
 });
 console.log("🔍 redis.url = ", process.env.REDIS_URL);
+
 // ------------------------------
 // ✅ 4. Express 初始化
 // ------------------------------
@@ -94,7 +96,7 @@ app.post('/api/reading/functions/start-generate-questions', async (req, res) => 
             payload: req.body,
         };
 
-        await redis.rpush("reading_question_queue", JSON.stringify(task));  // ✅ 換 queue 名稱！
+        await redis.rpush("reading_question_queue", JSON.stringify(task));
 
         console.log("✅ 題目任務已送入 Redis queue", taskId);
         res.json({ taskId });
@@ -116,7 +118,7 @@ app.get('/api/reading/functions/get-question-result', async (req, res) => {
         const result = await redis.get(`task:${taskId}:result`);
 
         if (!status) {
-            return res.json({ status: "not_found" }); // ✅ 統一格式
+            return res.json({ status: "not_found" });
         }
 
         res.json({ status, questions: result });
@@ -126,9 +128,10 @@ app.get('/api/reading/functions/get-question-result', async (req, res) => {
     }
 });
 
-import { v4 as uuidv4 } from 'uuid';
-
-app.post('/api/vocab/functions/start-generate-questions', async (req, res) => {
+// ------------------------------
+// ✅ 修改後：單字出題任務（Upstash REST 方式）
+// ------------------------------
+app.post('/api/vocab/functions/start-generate-vocab-questions', async (req, res) => {
     try {
         const { words, level, countPerWord, lengthRange } = req.body;
 
@@ -143,9 +146,25 @@ app.post('/api/vocab/functions/start-generate-questions', async (req, res) => {
             payload: { words, level, countPerWord, lengthRange },
         };
 
-        await redis.rpush("vocab_queue", JSON.stringify(task));
+        const url = process.env.UPSTASH_REDIS_REST_URL;
+        const token = process.env.UPSTASH_REDIS_REST_TOKEN;
 
-        console.log("✅ 單字任務已送入 Redis queue", taskId);
+        const redisResponse = await fetch(`${url}/lpush/vocab_queue`, {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ value: JSON.stringify(task) }),
+        });
+
+        if (!redisResponse.ok) {
+            const text = await redisResponse.text();
+            console.error("❌ Upstash 錯誤：", text);
+            return res.status(500).json({ error: "Failed to enqueue task (Upstash)" });
+        }
+
+        console.log("✅ 單字任務已送入 Upstash queue", taskId);
         res.json({ taskId });
     } catch (err) {
         console.error("❌ Redis 任務推送失敗（單字）", err);
@@ -156,21 +175,21 @@ app.post('/api/vocab/functions/start-generate-questions', async (req, res) => {
 app.get('/api/vocab/functions/get-question-result', async (req, res) => {
     const { taskId } = req.query;
     if (!taskId) return res.status(400).json({ error: "Missing taskId" });
-  
+
     try {
-      const status = await redis.get(`task:${taskId}:status`);
-      const result = await redis.get(`task:${taskId}:result`);
-  
-      if (!status) {
-        return res.json({ status: "not_found" });
-      }
-  
-      res.json({ status, data: JSON.parse(result) }); // ✅ 前端會抓 data
+        const status = await redis.get(`task:${taskId}:status`);
+        const result = await redis.get(`task:${taskId}:result`);
+
+        if (!status) {
+            return res.json({ status: "not_found" });
+        }
+
+        res.json({ status, data: JSON.parse(result) });
     } catch (err) {
-      console.error("❌ Redis 查詢失敗（單字）", err);
-      res.status(500).json({ error: "Redis error", detail: err.message });
+        console.error("❌ Redis 查詢失敗（單字）", err);
+        res.status(500).json({ error: "Redis error", detail: err.message });
     }
-  });
+});
 
 // ------------------------------
 // ✅ 啟動 Server
