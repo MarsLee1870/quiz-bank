@@ -11,7 +11,7 @@ export default function VocabularyAIGenerator() {
   const [loading, setLoading] = useState(false);
   const BASE = import.meta.env.VITE_API_URL;
 // 💡 引導 Vercel 部署 API
-fetch("/api/start-gen-vocab-questions").catch(() => {});
+fetch("/api/start-generate-vocab-questions").catch(() => {});
 
   const handleGenerate = async () => {
     setLoading(true);
@@ -45,7 +45,7 @@ fetch("/api/start-gen-vocab-questions").catch(() => {});
     }
   
     // ✅ 發送任務
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/start-gen-vocab-questions`, {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/start-generate-vocab-questions`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
