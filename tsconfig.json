@@ -13,6 +13,6 @@
         "@/*": ["src/*"]
       }
     },
-    "include": ["src", "api"]
+    "include": ["src", "api", "pages/api/vocab/get-question-result.js", "pages/api/vocab/start-generate-vocab-questions.js"]
   }
   

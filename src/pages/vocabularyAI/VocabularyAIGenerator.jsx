@@ -11,7 +11,7 @@ export default function VocabularyAIGenerator() {
   const [loading, setLoading] = useState(false);
   const BASE = import.meta.env.VITE_API_URL;
 // 💡 引導 Vercel 部署 API
-fetch("/api/vocab/functions/start-generate-vocab-questions").catch(() => {});
+fetch("/api/vocab/start-generate-vocab-questions").catch(() => {});
 
   const handleGenerate = async () => {
     setLoading(true);
@@ -45,7 +45,7 @@ fetch("/api/vocab/functions/start-generate-vocab-questions").catch(() => {});
     }
   
     // ✅ 發送任務
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/vocab/functions/start-generate-vocab-questions`, {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/vocab/start-generate-vocab-questions`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -78,7 +78,7 @@ fetch("/api/vocab/functions/start-generate-vocab-questions").catch(() => {});
     let resultJson = null;
   
     while (tries < maxTries) {
-      const pollRes = await fetch(`${import.meta.env.VITE_API_URL}/api/vocab/functions/get-question-result?taskId=${taskId}`);
+      const pollRes = await fetch(`${import.meta.env.VITE_API_URL}/api/vocab/get-question-result?taskId=${taskId}`);
       if (pollRes.status === 200) {
              resultJson = await pollRes.json();
              if (resultJson.status === "done") {
