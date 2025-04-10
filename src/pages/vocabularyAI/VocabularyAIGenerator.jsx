@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { generateGPTQuestions } from "@/api/generate-vocab-questions-gpt";
+import "../../../api/vocab/functions/start-generate-vocab-questions.js";
+
 
 export default function VocabularyAIGenerator() {
   const [inputWords, setInputWords] = useState("");
