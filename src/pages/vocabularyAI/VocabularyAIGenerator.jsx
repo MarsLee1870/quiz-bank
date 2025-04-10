@@ -10,6 +10,8 @@ export default function VocabularyAIGenerator() {
   const [groupedQuestions, setGroupedQuestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const BASE = import.meta.env.VITE_API_URL;
+// 💡 引導 Vercel 部署 API
+fetch("/api/vocab/functions/start-generate-vocab-questions").catch(() => {});
 
   const handleGenerate = async () => {
     setLoading(true);
