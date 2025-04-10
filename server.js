@@ -131,7 +131,7 @@ app.get('/api/reading/functions/get-question-result', async (req, res) => {
 // ------------------------------
 // ✅ 修改後：單字出題任務（Upstash REST 方式）
 // ------------------------------
-app.post('/api/vocab/functions/start-generate-vocab-questions', async (req, res) => {
+app.post('/api/start-generate-vocab-questions', async (req, res) => {
     try {
         const { words, level, countPerWord, lengthRange } = req.body;
 
@@ -158,7 +158,7 @@ app.post('/api/vocab/functions/start-generate-vocab-questions', async (req, res)
 });
 
 
-app.get('/api/vocab/functions/get-question-result', async (req, res) => {
+app.get('/api/get-question-result', async (req, res) => {
     const { taskId } = req.query;
     if (!taskId) return res.status(400).json({ error: "Missing taskId" });
 
