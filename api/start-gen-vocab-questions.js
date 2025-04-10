@@ -67,7 +67,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ taskId });
   } catch (error) {
-    console.error("❌ start-generate-vocab-questions 錯誤：", error);
+    console.error("❌ start-gen-vocab-questions 錯誤：", error);
     console.error("🔍 error.message:", error.message);
     console.error("📄 error.stack:", error.stack);
 
