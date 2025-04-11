@@ -63,6 +63,7 @@ export default async function handler(req, res) {
     } else {
       await redis.lpush("vocab_queue", JSON.stringify(taskPayload));
       console.log("✅ Redis response (Local): 已推入 vocab_queue");
+      console.log("📮 任務送出成功，taskId：", taskId);
     }
 
     return res.status(200).json({ taskId });

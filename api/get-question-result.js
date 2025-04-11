@@ -1,4 +1,4 @@
-app.get('/api/vocab/functions/get-question-result', async (req, res) => {
+app.get('/api/get-question-result', async (req, res) => {
     const { taskId } = req.query;
     if (!taskId) return res.status(400).json({ error: "Missing taskId" });
   
@@ -23,7 +23,24 @@ app.get('/api/vocab/functions/get-question-result', async (req, res) => {
             Authorization: `Bearer ${token}`,
           },
         });
-        result = await resultRes.text();
+        if (!status) {
+          return res.json({ status: "not_found" });
+        }
+        
+        if (status === "done" && (!result || result === "")) {
+          return res.json({ status: "not_ready" }); // 還沒寫入結果
+        }
+        
+        let parsedResult;
+        try {
+          parsedResult = JSON.parse(result);
+        } catch (e) {
+          console.error("❌ JSON parse 失敗：", result);
+          return res.status(500).json({ status, error: "結果格式錯誤" });
+        }
+        
+        res.json({ status, data: parsedResult });
+        
       } else {
         status = await redis.get(`task:${taskId}:status`);
         result = await redis.get(`task:${taskId}:result`);

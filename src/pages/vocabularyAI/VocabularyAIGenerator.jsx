@@ -9,7 +9,6 @@ export default function VocabularyAIGenerator() {
   const [maxWords, setMaxWords] = useState(20);
   const [groupedQuestions, setGroupedQuestions] = useState([]);
   const [loading, setLoading] = useState(false);
-  const BASE = import.meta.env.VITE_API_URL;
 
 
   const handleGenerate = async () => {
@@ -44,7 +43,7 @@ export default function VocabularyAIGenerator() {
     }
   
     // ✅ 發送任務
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/start-generate-vocab-questions`, {
+    const res = await fetch(`${import.meta.env.VITE_VOCAB_API_URL}/api/start-generate-vocab-questions`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -77,7 +76,7 @@ export default function VocabularyAIGenerator() {
     let resultJson = null;
   
     while (tries < maxTries) {
-      const pollRes = await fetch(`${import.meta.env.VITE_API_URL}/api/get-question-result?taskId=${taskId}`);
+      const pollRes = await fetch(`${import.meta.env.VITE_VOCAB_API_URL}/api/get-question-result?taskId=${taskId}`);
       if (pollRes.status === 200) {
              resultJson = await pollRes.json();
              if (resultJson.status === "done") {
