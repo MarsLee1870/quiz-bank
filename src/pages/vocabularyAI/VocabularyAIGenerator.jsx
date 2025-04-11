@@ -56,17 +56,25 @@ export default function VocabularyAIGenerator() {
     });
   
     let taskId;
-    try {
-      const json = await res.json();
-      taskId = json.taskId;
-      console.log("📮 任務送出成功，taskId：", taskId);
-    } catch (e) {
-      const text = await res.text();
-      console.error("❌ 回傳內容非 JSON：", text);
-      alert("❌ 回傳錯誤，請查看 Console");
-      setLoading(false);
-      return;
-    }
+try {
+  const text = await res.text();  // ✅ 只讀一次
+  const json = JSON.parse(text);
+  if (!res.ok) {
+    console.error("❌ 錯誤回應：", json);
+    alert("❌ 錯誤！請查看 Console");
+    setLoading(false);
+    return;
+  }
+
+  taskId = json.taskId;
+  console.log("📮 任務送出成功，taskId：", taskId);
+} catch (e) {
+  console.error("❌ 回傳內容非 JSON 或格式錯誤：", e);
+  alert("❌ 回傳格式錯誤，請查看 Console");
+  setLoading(false);
+  return;
+}
+
   
     if (!taskId) {
       alert("❌ 無法送出任務");
