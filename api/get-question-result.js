@@ -25,14 +25,16 @@ export default async function handler(req, res) {
           Authorization: `Bearer ${token}`,
         },
       });
-      status = await statusRes.text();
+      const statusText = await statusRes.text();
+      status = statusText.replace(/^"|"$/g, ""); // ✅ 去掉引號
 
       const resultRes = await fetch(`${url}/get/task:${taskId}:result`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      result = await resultRes.text();
+      const resultText = await resultRes.text();
+      result = resultText.replace(/^"|"$/g, ""); // ✅ 去掉引號
 
     } else {
       status = await redis.get(`task:${taskId}:status`);
