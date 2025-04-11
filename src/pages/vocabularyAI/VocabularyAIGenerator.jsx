@@ -15,6 +15,7 @@ export default function VocabularyAIGenerator() {
     setLoading(true);
     setGroupedQuestions([]);
   
+    // 驗證題目字數區間
     if (
       minWords < 10 ||
       maxWords > 50 ||
@@ -53,49 +54,55 @@ export default function VocabularyAIGenerator() {
         lengthRange: { min: minWords, max: maxWords },
       }),
     });
-    
-    if (!res.ok) {
+  
+    let taskId;
+    try {
+      const json = await res.json();
+      taskId = json.taskId;
+      console.log("📮 任務送出成功，taskId：", taskId);
+    } catch (e) {
       const text = await res.text();
-      console.error("❌ 伺服器錯誤回應：", text);
-      alert("❌ 錯誤！請查看 Console");
+      console.error("❌ 回傳內容非 JSON：", text);
+      alert("❌ 回傳錯誤，請查看 Console");
       setLoading(false);
       return;
     }
-    
-    const { taskId } = await res.json();
+  
     if (!taskId) {
       alert("❌ 無法送出任務");
       setLoading(false);
       return;
     }
-    
   
     // ✅ polling 拿結果
     let tries = 0;
     let maxTries = 30;
-    let resultJson = null;
-  
     while (tries < maxTries) {
       const pollRes = await fetch(`${import.meta.env.VITE_VOCAB_API_URL}/api/get-question-result?taskId=${taskId}`);
       if (pollRes.status === 200) {
-             resultJson = await pollRes.json();
-             if (resultJson.status === "done") {
-               break;
-             }
+        try {
+          const resultJson = await pollRes.json();
+          if (resultJson.status === "done") {
+            setGroupedQuestions(resultJson.data);
+            break;
+          }
+        } catch (e) {
+          const text = await pollRes.text();
+          console.error("❌ polling 回傳錯誤：", text);
+        }
       }
   
       await new Promise((resolve) => setTimeout(resolve, 1000));
       tries++;
     }
   
-    if (!resultJson || !resultJson.data) {
+    if (tries === maxTries) {
       alert("❌ 生成超時，請稍後再試！");
-    } else {
-      setGroupedQuestions(resultJson.data);
     }
   
     setLoading(false);
   };
+  
  
 
   return (
