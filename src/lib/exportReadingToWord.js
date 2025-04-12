@@ -21,47 +21,29 @@ export async function exportReadingToWord(article, questions) {
             // ===== 第一列 題號 + 題幹（分左右兩欄）=====
             new TableRow({
                 children: [
-                  new TableCell({
-                    width: { size: questionNumberWidth, type: WidthType.DXA },
-                    children: [
-                      new Paragraph({
-                        spacing: { line: 276 },
+                    new TableCell({
+                        width: { size: questionNumberWidth, type: WidthType.DXA },
                         children: [
-                          new TextRun({
-                            text: `${idx + 1}. ( `,
-                            font: "Times New Roman",
-                            size: 28,
-                          }),
-                          new TextRun({
-                            text: q.answer,
-                            font: "Times New Roman",
-                            size: 28,
-                            color: "FF0000",
-                            bold: true,
-                          }),
-                          new TextRun({
-                            text: " )",
-                            font: "Times New Roman",
-                            size: 28,
+                          new Paragraph({
+                            spacing: { line: 276 },
+                            children: [
+                              new TextRun({
+                                text: `${idx + 1}.`,
+                                font: "Times New Roman",
+                                size: 28,
+                              }),
+                              new TextRun({
+                                text: ` ( ${q.answer} )`,
+                                font: "Times New Roman",
+                                size: 28,
+                                color: "FF0000",
+                                bold: true,
+                              }),
+                            ],
                           }),
                         ],
                       }),
-                    ],
-                  }),
-                  new TableCell({
-                    children: [
-                      new Paragraph({
-                        spacing: { line: 276 },
-                        children: [
-                          new TextRun({
-                            text: q.question,
-                            font: "Times New Roman",
-                            size: 28,
-                          }),
-                        ],
-                      }),
-                    ],
-                  }),
+                      
                 ],
               }),
               
