@@ -22,22 +22,29 @@ export async function exportReadingToWord(article, questions) {
             new TableRow({
                 children: [
                     new TableCell({
-                        width: { size: questionNumberWidth, type: WidthType.DXA },
+                        width: { size: questionNumberWidth + cm(14), type: WidthType.DXA }, // 拿掉右欄，左欄變寬
+                        columnSpan: 2,
                         children: [
-                            new Paragraph({
-                                spacing: { line: 276 },
-                                children: [
-                                    new TextRun({
-                                        text: `${idx + 1}. ( ${q.answer} )`,
-                                        font: "Times New Roman",
-                                        size: 28,
-                                        color: "FF0000",
-                                        bold: true,
-                                    }),
-                                ],
-                            }),
+                          new Paragraph({
+                            spacing: { line: 276 },
+                            children: [
+                              new TextRun({
+                                text: `${idx + 1}. ( ${q.answer} ) `,
+                                font: "Times New Roman",
+                                size: 28,
+                                color: "FF0000",
+                                bold: true,
+                              }),
+                              new TextRun({
+                                text: q.question,
+                                font: "Times New Roman",
+                                size: 28,
+                              }),
+                            ],
+                          }),
                         ],
-                    }),
+                      }),
+                      
                     
                     new TableCell({
                         children: [
