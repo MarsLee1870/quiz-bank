@@ -15,6 +15,10 @@ export async function exportReadingToWord(article, questions) {
         const firstEmptyCellWidth = cm(2);
         const questionIndent = 50;
         const safeOptions = (q.options || []).concat(["", "", "", ""]).slice(0, 4);
+        const match = q.question.match(/^\(\s*([A-D])\s*\)\s*(.+)$/);
+        const answerLetter = match?.[1] || q.answer;
+        const questionText = match?.[2] || q.question;
+
 
         return [
 
@@ -34,7 +38,7 @@ export async function exportReadingToWord(article, questions) {
                             size: 28,
                           }),
                           new TextRun({
-                            text: ` ( ${q.answer} )`,
+                            text: ` ( ${answerLetter} )`,
                             font: "Times New Roman",
                             size: 28,
                             color: "FF0000",
@@ -45,14 +49,14 @@ export async function exportReadingToWord(article, questions) {
                     ],
                   }),
               
-                  // 右欄：題幹（⚠️ 去除多餘的 (B)）
+                  // 右欄：題幹（已去除開頭的 (B)）
                   new TableCell({
                     children: [
                       new Paragraph({
                         spacing: { line: 276 },
                         children: [
                           new TextRun({
-                            text: q.question.replace(/^\(\s*[A-D]\s*\)\s*/, ""), // ✅ 移除開頭的 ( B )
+                            text: questionText,
                             font: "Times New Roman",
                             size: 28,
                           }),
