@@ -28,26 +28,17 @@ export async function exportReadingToWord(article, questions) {
                                 spacing: { line: 276 },
                                 children: [
                                     new TextRun({
-                                        text: `${idx + 1}. ( `,
-                                        font: "Times New Roman",
-                                        size: 28,
-                                    }),
-                                    new TextRun({
-                                        text: q.answer,
+                                        text: `${idx + 1}. ( ${q.answer} )`,
                                         font: "Times New Roman",
                                         size: 28,
                                         color: "FF0000",
                                         bold: true,
                                     }),
-                                    new TextRun({
-                                        text: " )",
-                                        font: "Times New Roman",
-                                        size: 28,
-                                    }),
                                 ],
                             }),
                         ],
                     }),
+                    
                     new TableCell({
                         children: [
                             new Paragraph({
