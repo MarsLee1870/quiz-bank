@@ -19,50 +19,43 @@ export async function exportReadingToWord(article, questions) {
         return [
 
             // ===== 第一列 題號 + 題目 =====
-            new TableRow({
-                children: [
-                    new TableCell({
-                        width: { size: questionNumberWidth + cm(14), type: WidthType.DXA }, // 拿掉右欄，左欄變寬
-                        columnSpan: 2,
-                        children: [
-                          new Paragraph({
-                            spacing: { line: 276 },
-                            children: [
-                              new TextRun({
-                                text: `${idx + 1}. ( ${q.answer} ) `,
-                                font: "Times New Roman",
-                                size: 28,
-                                color: "FF0000",
-                                bold: true,
-                              }),
-                              new TextRun({
-                                text: q.question,
-                                font: "Times New Roman",
-                                size: 28,
-                              }),
-                            ],
-                          }),
-                        ],
-                      }),
-                      
-                    
-                    new TableCell({
-                        children: [
-                            new Paragraph({
-                                spacing: { line: 276 },
-                                indent: { left: questionIndent },
-                                children: [
-                                    new TextRun({
-                                        text: q.question,
-                                        font: "Times New Roman",
-                                        size: 28,
-                                    }),
-                                ],
-                            }),
-                        ],
-                    }),
-                ],
-            }),
+new TableRow({
+    children: [
+        new TableCell({
+            width: { size: questionNumberWidth, type: WidthType.DXA },
+            children: [
+                new Paragraph({
+                    spacing: { line: 276 },
+                    children: [
+                        new TextRun({
+                            text: `${idx + 1}. ( ${q.answer} )`,
+                            font: "Times New Roman",
+                            size: 28,
+                            color: "FF0000",
+                            bold: true,
+                        }),
+                    ],
+                }),
+            ],
+        }),
+        new TableCell({
+            children: [
+                new Paragraph({
+                    spacing: { line: 276 },
+                    indent: { left: questionIndent },
+                    children: [
+                        new TextRun({
+                            text: q.question,
+                            font: "Times New Roman",
+                            size: 28,
+                        }),
+                    ],
+                }),
+            ],
+        }),
+    ],
+}),
+
 
             // ===== 第二列 空白 + 選項 =====
             new TableRow({
