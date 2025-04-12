@@ -18,11 +18,11 @@ export async function exportReadingToWord(article, questions) {
 
         return [
 
-            // ===== 第一列 題號 + 題目 =====
+            // ===== 第一列 題號 + 題幹（分左右兩欄）=====
 new TableRow({
     children: [
         new TableCell({
-            width: { size: questionNumberWidth, type: WidthType.DXA },
+            width: { size: cm(2), type: WidthType.DXA },
             children: [
                 new Paragraph({
                     spacing: { line: 276 },
@@ -42,7 +42,6 @@ new TableRow({
             children: [
                 new Paragraph({
                     spacing: { line: 276 },
-                    indent: { left: questionIndent },
                     children: [
                         new TextRun({
                             text: q.question,
