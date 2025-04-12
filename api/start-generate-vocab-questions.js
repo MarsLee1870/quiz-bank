@@ -3,19 +3,28 @@ import Redis from "ioredis";
 
 const isVercel = process.env.VERCEL === "1";
 
-// Redis 初始化
-let redis = null;
-if (!isVercel) {
-  redis = new Redis(process.env.REDIS_URL, {
-    tls: { rejectUnauthorized: false }
-  });
-}
-
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
+  // ✅ 每次 request 都建立一個新 Redis 實例
+  const redis = new Redis(process.env.REDIS_URL, {
+    tls: { rejectUnauthorized: false },
+     });
+
+  redis.on("error", (err) => {
+    console.error("❌ Redis 連線錯誤：", err);
+  });
+
+  redis.on("end", () => {
+    console.warn("⚠️ Redis 連線已中斷");
+  });
+
+  redis.on("reconnecting", () => {
+    console.log("🔁 Redis 嘗試重新連線...");
+  });
+
   try {
-    const { words, level, countPerWord, lengthRange } = req.body;
+        const { words, level, countPerWord, lengthRange } = req.body;
 
     if (
       !Array.isArray(words) || words.length === 0 ||
@@ -33,38 +42,10 @@ export default async function handler(req, res) {
       payload: { words, level, countPerWord, lengthRange },
     };
 
-    if (isVercel) {
-      const url = process.env.UPSTASH_REDIS_REST_URL;
-      const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-    
-      console.log("🚀 Redis REST URL:", url);
-      console.log("🔑 Redis REST TOKEN:", token);
-      console.log("📦 Redis payload:", taskPayload);
-    
-      const redisResponse = await fetch(`${url}/lpush/vocab_queue`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          value: JSON.stringify(taskPayload)
-        }),
-      });
-      
-      const text = await redisResponse.text();
-      console.log("📡 Status Code:", redisResponse.status);
-      console.log("📄 Raw Response Text:", text);
-      
-      if (!redisResponse.ok) {
-        throw new Error(`Upstash Redis API error: ${redisResponse.status} - ${text}`);
-      }
-
-    } else {
-      await redis.lpush("vocab_queue", JSON.stringify(taskPayload));
-      console.log("✅ Redis response (Local): 已推入 vocab_queue");
-      console.log("📮 任務送出成功，taskId：", taskId);
-    }
+    await redis.lpush("vocab_queue", JSON.stringify(taskPayload));
+    const qLen = await redis.llen("vocab_queue");
+    console.log("📦 vocab_queue 長度 =", qLen);
+    console.log("📮 任務送出成功，taskId：", taskId);
 
     return res.status(200).json({ taskId });
   } catch (error) {
@@ -77,5 +58,7 @@ export default async function handler(req, res) {
       detail: error.message,
       stack: error.stack,
     });
-  }
+  } finally {
+    await redis.quit();
+}
 }

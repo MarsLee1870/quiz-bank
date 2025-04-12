@@ -3,7 +3,7 @@ import Redis from "ioredis";
 let redis = null;
 const isVercel = process.env.VERCEL === "1";
 
-if (!isVercel) {
+if (!redis) {
   redis = new Redis(process.env.REDIS_URL, {
     tls: { rejectUnauthorized: false }
   });
@@ -16,30 +16,10 @@ export default async function handler(req, res) {
   try {
     let status, result;
 
-    if (isVercel) {
-      const url = process.env.UPSTASH_REDIS_REST_URL;
-      const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-
-      const statusRes = await fetch(`${url}/get/task:${taskId}:status`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const statusText = await statusRes.text();
-      status = statusText.replace(/^"|"$/g, ""); // ✅ 去掉引號
-
-      const resultRes = await fetch(`${url}/get/task:${taskId}:result`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const resultText = await resultRes.text();
-      result = resultText.replace(/^"|"$/g, ""); // ✅ 去掉引號
-
-    } else {
-      status = await redis.get(`task:${taskId}:status`);
-      result = await redis.get(`task:${taskId}:result`);
-    }
+    // ✅ 無論 Vercel 或 local，都統一使用 ioredis
+    status = await redis.get(`task:${taskId}:status`);
+    result = await redis.get(`task:${taskId}:result`);
+    console.log("🔎 Redis 查詢結果", { taskId, status, result });
 
     if (!status) {
       return res.json({ status: "not_found" });
@@ -57,6 +37,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ status, error: "結果格式錯誤" });
     }
 
+    res.setHeader("Cache-Control", "no-store");
     res.json({ status, data: parsedResult });
 
   } catch (err) {

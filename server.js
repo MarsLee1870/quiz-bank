@@ -25,6 +25,7 @@ console.log("🔍 redis.url = ", process.env.REDIS_URL);
 // ✅ 4. Express 初始化
 // ------------------------------
 const app = express();
+app.set("etag", false);
 app.use(cors());
 app.use(express.json());
 
