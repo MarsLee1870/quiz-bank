@@ -86,7 +86,9 @@ try {
     let tries = 0;
     let maxTries = 30;
     while (tries < maxTries) {
-      const pollRes = await fetch(`/api/get-question-result?taskId=${taskId}`);
+      const pollRes = await fetch(`/api/get-question-result?taskId=${taskId}`, {
+        cache: "no-store",
+      });
       if (pollRes.status === 200) {
         try {
           const resultJson = await pollRes.json();
