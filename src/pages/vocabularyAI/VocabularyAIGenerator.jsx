@@ -189,35 +189,39 @@ export default function VocabularyAIGenerator() {
               <div>
                 <label className="block mb-1 font-semibold text-gray-100">每個單字題數</label>
                 <input
-                  type="number"
-                  min={1}
-                  max={3}
-                  className="bg-gray-900 text-gray-100 border border-gray-600 px-2 py-1 rounded w-full text-center"
-                  value={countPerWord}
-                  onChange={(e) => setCountPerWord(Number(e.target.value))}
-                />
+  type="text"
+  pattern="\d*"
+  inputMode="numeric"
+  className="bg-gray-900 text-gray-100 border border-gray-600 px-2 py-1 rounded w-16 text-center"
+  value={countPerWord}
+  onChange={(e) => setCountPerWord(Number(e.target.value.replace(/[^\d]/g, "")))}
+/>
+
               </div>
               <div>
                 <label className="block mb-1 font-semibold text-gray-100">題目字數</label>
                 <div className="flex items-center justify-center gap-1">
-                  <input
-                    type="number"
-                    min={10}
-                    max={50}
-                    className="bg-gray-900 text-gray-100 border border-gray-600 px-2 py-1 rounded w-16 text-center"
-                    value={minWords}
-                    onChange={(e) => setMinWords(Number(e.target.value))}
-                  />
-                  <span className="mx-0">~</span>
-                  <input
-                    type="number"
-                    min={10}
-                    max={50}
-                    className="bg-gray-900 text-gray-100 border border-gray-600 px-2 py-1 rounded w-16 text-center"
-                    value={maxWords}
-                    onChange={(e) => setMaxWords(Number(e.target.value))}
-                  />
-                </div>
+                <input
+  type="text"
+  inputMode="numeric"
+  pattern="\d*"
+  className="bg-gray-900 text-gray-100 border border-gray-600 px-2 py-1 rounded w-16 text-center"
+  value={minWords}
+  onChange={(e) =>
+    setMinWords(Number(e.target.value.replace(/[^\d]/g, "")))
+  }
+/>
+
+  <span className="text-gray-300">~</span>
+  <input
+    type="text"
+    inputMode="numeric"
+    pattern="\d*"
+    className="bg-gray-900 text-gray-100 border border-gray-600 px-2 py-1 rounded w-16 text-center"
+    value={maxWords}
+    onChange={(e) => setMaxWords(Number(e.target.value))}
+  />
+</div>
               </div>
             </div>
 
