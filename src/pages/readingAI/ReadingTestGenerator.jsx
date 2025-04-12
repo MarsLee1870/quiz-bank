@@ -440,9 +440,8 @@ const formatQuestions = (raw) => {
               onChange={handleCheckboxChange}
               className="mt-2 accent-blue-500"
             />
-  <p className="font-medium">
-  {`${index + 1}. ( ${answer} ) ${questionLine}`}
-</p>
+  <p className="font-medium">{rawQuestion}</p>
+
 
           </div>
           <div className="ml-6 space-y-1">
