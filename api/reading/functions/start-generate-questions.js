@@ -15,7 +15,7 @@ export default async function handler(req, res) {
 
     const taskId = uuidv4();
 
-    await redis.lpush("task_queue", JSON.stringify({
+    await redis.lpush("reading_question_queue", JSON.stringify({
         taskId,
         type: "generate-reading-questions",
         payload: { article, questionConfig }
