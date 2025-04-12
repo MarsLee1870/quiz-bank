@@ -59,6 +59,7 @@ export default async function handler(req, res) {
       stack: error.stack,
     });
   } finally {
-    await redis.quit();
+    if (!isVercel) await redis.quit();
+    else redis.quit();
 }
 }
