@@ -15,46 +15,70 @@ export async function exportReadingToWord(article, questions) {
         const firstEmptyCellWidth = cm(2);
         const questionIndent = 50;
         const safeOptions = (q.options || []).concat(["", "", "", ""]).slice(0, 4);
-        const rawQuestion = typeof q.question === "string" ? q.question : q.question?.question || "";
-        const questionText = rawQuestion.replace(/^\s*\(\s*[A-D]\s*\)\s*/, "").trim();
-        const answerLetter = q.answer || "";
+        
+
+// ✅ 保留正確答案，避免被誤刪
+const rawQuestion = typeof q.question === "string" ? q.question : q.question?.question || "";
+
+// 從原始題幹擷取出答題字母與題目本體
+const match = rawQuestion.match(/^\d+\.\s*\(\s*([A-D])\s*\)\s*(.+)/);
+const questionText = match ? match[2].trim() : rawQuestion.trim(); // 題幹
+const answerLetter = q.answer || (match ? match[1] : "");           // 正解（優先用 q.answer）
 
 
 
         return [
 
-            // ===== 第一列 題號 + 題幹=====
-            new TableRow({
-                children: [
-                  new TableCell({
-                    columnSpan: 2,
-                    children: [
-                      new Paragraph({
-                        spacing: { line: 276 },
-                        children: [
-                          new TextRun({
-                            text: `${idx + 1}. ( `,
-                            font: "Times New Roman",
-                            size: 28,
-                          }),
-                          new TextRun({
-                            text: answerLetter,
-                            font: "Times New Roman",
-                            size: 28,
-                            color: "FF0000",
-                            bold: true,
-                          }),
-                          new TextRun({
-                            text: ` ) ${questionText}`,
-                            font: "Times New Roman",
-                            size: 28,
-                          }),
-                        ],
-                      }),
-                    ],
-                  }),
-                ],
+            // ===== 第一列 分左右兩欄 =====
+new TableRow({
+    children: [
+      // 左欄：題號 + 答案
+      new TableCell({
+        width: { size: cm(2), type: WidthType.DXA },
+        children: [
+          new Paragraph({
+            spacing: { line: 276 },
+            children: [
+              new TextRun({
+                text: `${idx + 1}. ( `,
+                font: "Times New Roman",
+                size: 28,
               }),
+              new TextRun({
+                text: answerLetter,
+                font: "Times New Roman",
+                size: 28,
+                bold: true,
+                color: "FF0000",
+              }),
+              new TextRun({
+                text: " )",
+                font: "Times New Roman",
+                size: 28,
+              }),
+            ],
+          }),
+        ],
+      }),
+      // 右欄：題幹
+      new TableCell({
+        children: [
+          new Paragraph({
+            spacing: { line: 276 },
+            alignment: AlignmentType.LEFT,
+            children: [
+              new TextRun({
+                text: questionText,
+                font: "Times New Roman",
+                size: 28,
+              }),
+            ],
+          }),
+        ],
+      }),
+    ],
+  }),
+  
               
  
             // ===== 第二列 空白 + 選項 =====

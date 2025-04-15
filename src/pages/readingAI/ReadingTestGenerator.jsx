@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/Textarea";
 import { saveAs } from "file-saver";
+import { exportReadingToWord } from "@/lib/exportReadingToWord";
 import {
   Document,
   Packer,
@@ -42,200 +43,35 @@ export default function ReadingTestGenerator() {
         return;
       }
     
+      // 根據勾選題目重組成 questions 陣列
       const blocks = questions.split(/\n(?=\d+\.)/);
     
-      const doc = new Document({
-        sections: [
-          {
-            properties: {
-              page: {
-                margin: { top: 720, bottom: 720, left: 720, right: 720 }, // 1.27cm
-              },
-            },
-            children: [
-              // 文章段落
-              ...article
-                .trim()
-                .split(/\n+/)
-                .map((para) => {
-                  return new Paragraph({
-                    indent: { firstLine: 720 },
-                    children: [
-                      new TextRun({
-                        text: para.trim(),
-                        font: "Times New Roman",
-                        size: 32,
-                      }),
-                    ],
-                    spacing: { line: 276 },
-                  });
-                }),
+      const selected = blocks
+        .map((block, index) => {
+          const qId = `q-${index}`;
+          if (!selectedQuestions.includes(qId)) return null;
     
-              new Paragraph(""),
+          const answerMatch = block.match(/Answer:\s*([A-D])/);
+          const hintMatch = block.match(/Hint:\s*(.+)/);
+          const answer = answerMatch ? answerMatch[1] : "";
+          const hint = hintMatch ? hintMatch[1].trim() : "";
     
-              // 題目區塊
-              ...blocks
-                .map((block, index) => {
-                  const qId = `q-${index}`;
-                  if (!selectedQuestions.includes(qId)) return null;
+          const lines = block
+            .replace(/Answer:\s*[A-D]/, "")
+            .replace(/Hint:\s*.+/, "")
+            .trim()
+            .split("\n");
     
-                  const answerMatch = block.match(/Answer:\s*([A-D])/);
-                  const hintMatch = block.match(/Hint:\s*(.+)/);
-                  const answer = answerMatch ? answerMatch[1] : "";
-                  const hint = hintMatch ? hintMatch[1].trim() : "";
+          const question = lines[0]?.trim();
+          const options = lines.slice(1).map((l) => l.trim());
     
-                  const lines = block
-                    .replace(/Answer:\s*[A-D]/, "")
-                    .replace(/Hint:\s*.+/, "")
-                    .trim()
-                    .split("\n");
+          return { question, options, answer, hint };
+        })
+        .filter(Boolean);
     
-                    const rawQuestion = lines[0].trim();
-                    const questionLine = rawQuestion.replace(/^\d+\.\s*/, "");
-                    
-                  const options = lines.slice(1).map((line) => line.trim());
-    
-                  return new Table({
-                    width: { size: 100, type: WidthType.PERCENTAGE },
-                    rows: [
-                      // 題號 + 題幹
-                      new TableRow({
-                        children: [
-                          new TableCell({
-                            width: { size: 10, type: WidthType.PERCENTAGE },
-                            borders: noBorder,
-                            children: [
-                              new Paragraph({
-                                children: [
-                                  new TextRun({
-                                    text: `${index + 1}. ( `,
-                                    font: "Times New Roman",
-                                    size: 28,
-                                  }),
-                                  new TextRun({
-                                    text: `${answer}`,
-                                    font: "Times New Roman",
-                                    size: 28,
-                                    bold: true,
-                                    color: "FF0000",
-                                  }),
-                                  new TextRun({
-                                    text: " )",
-                                    font: "Times New Roman",
-                                    size: 28,
-                                  }),
-                                ],
-                              }),
-                            ],
-                          }),
-                          new TableCell({
-                            borders: noBorder,
-                            children: [
-                              new Paragraph({
-                                children: [
-                                  new TextRun({
-                                    text: questionLine, // <-- 處理後的題幹
-                                    font: "Times New Roman",
-                                    size: 28,
-                                  }),
-                                ],
-                                spacing: { line: 276 }, // 1.15 行距
-                              }),
-                            ],
-                          }),
-                        ],
-                      }),
-    
-                      // 選項（同欄多行）
-                      new TableRow({
-                        children: [
-                          new TableCell({ children: [new Paragraph("")], borders: noBorder }),
-                          new TableCell({
-                            borders: noBorder,
-                            children: options.map((opt) =>
-                              new Paragraph({
-                                children: [
-                                  new TextRun({ text: opt, font: "Times New Roman", size: 28 }),
-                                ],
-                                spacing: { line: 276 },
-                              })
-                            ),
-                          }),
-                        ],
-                      }),
-    
-                      // Hint 行
-new TableRow({
-  children: [
-    new TableCell({
-      borders: noBorder,
-      children: [
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: "Hint:",
-              italics: true,
-              font: "Times New Roman",
-              size: 24,
-            }),
-          ],
-          spacing: { line: 276 },
-        }),
-      ],
-    }),
-    new TableCell({
-      borders: noBorder,
-      children: [
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: hint,
-              italics: true,
-              font: "Times New Roman",
-              size: 24,
-            }),
-          ],
-          spacing: { line: 276 },
-        }),
-      ],
-    }),
-  ],
-}),
-
-    
-                      // 空白間距
-                      new TableRow({
-                        children: [
-                          new TableCell({
-                            children: [new Paragraph("")],
-                            borders: noBorder,
-                            columnSpan: 2,
-                          }),
-                        ],
-                      }),
-                    ],
-                  });
-                })
-                .filter(Boolean),
-            ],
-          },
-        ],
-      });
-    
-      Packer.toBlob(doc).then((blob) => {
-        const now = new Date();
-const year = String(now.getFullYear()).slice(2);       // 25
-const month = String(now.getMonth() + 1).padStart(2, "0"); // 04
-const day = String(now.getDate()).padStart(2, "0");         // 08
-const hour = String(now.getHours()).padStart(2, "0");       // 01
-const minute = String(now.getMinutes()).padStart(2, "0");   // 06
-
-const filename = `readingAI${year}${month}${day}${hour}${minute}.docx`;
-
-saveAs(blob, filename);
-
-      });
+      exportReadingToWord(article, selected);
     };
+    
      
     const getWordCount = (text) => {
       return text?.trim() ? text.trim().split(/\s+/).length : 0;
