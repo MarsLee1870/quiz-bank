@@ -192,7 +192,7 @@ export default function VocabularyAIGenerator() {
   type="text"
   pattern="\d*"
   inputMode="numeric"
-  className="bg-gray-900 text-gray-100 border border-gray-600 px-2 py-1 rounded w-16 text-center"
+  className="bg-gray-900 text-gray-100 border border-gray-600 px-2 py-1 rounded w-12 text-center"
   value={countPerWord}
   onChange={(e) => setCountPerWord(Number(e.target.value.replace(/[^\d]/g, "")))}
 />
@@ -205,7 +205,7 @@ export default function VocabularyAIGenerator() {
   type="text"
   inputMode="numeric"
   pattern="\d*"
-  className="bg-gray-900 text-gray-100 border border-gray-600 px-2 py-1 rounded w-16 text-center"
+  className="bg-gray-900 text-gray-100 border border-gray-600 px-2 py-1 rounded w-12 text-center"
   value={minWords}
   onChange={(e) =>
     setMinWords(Number(e.target.value.replace(/[^\d]/g, "")))
@@ -217,7 +217,7 @@ export default function VocabularyAIGenerator() {
     type="text"
     inputMode="numeric"
     pattern="\d*"
-    className="bg-gray-900 text-gray-100 border border-gray-600 px-2 py-1 rounded w-16 text-center"
+    className="bg-gray-900 text-gray-100 border border-gray-600 px-2 py-1 rounded w-12 text-center"
     value={maxWords}
     onChange={(e) => setMaxWords(Number(e.target.value))}
   />
