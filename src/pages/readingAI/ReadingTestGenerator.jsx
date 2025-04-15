@@ -44,30 +44,51 @@ export default function ReadingTestGenerator() {
       }
     
       // 根據勾選題目重組成 questions 陣列
-      const blocks = questions.split(/\n(?=\d+\.)/);
-    
-      const selected = blocks
-        .map((block, index) => {
-          const qId = `q-${index}`;
-          if (!selectedQuestions.includes(qId)) return null;
-    
-          const answerMatch = block.match(/Answer:\s*([A-D])/);
-          const hintMatch = block.match(/Hint:\s*(.+)/);
-          const answer = answerMatch ? answerMatch[1] : "";
-          const hint = hintMatch ? hintMatch[1].trim() : "";
-    
-          const lines = block
-            .replace(/Answer:\s*[A-D]/, "")
-            .replace(/Hint:\s*.+/, "")
-            .trim()
-            .split("\n");
-    
-          const question = lines[0]?.trim();
-          const options = lines.slice(1).map((l) => l.trim());
-    
-          return { question, options, answer, hint };
-        })
-        .filter(Boolean);
+      let questionList = [];
+
+try {
+  questionList = typeof questions === "string" && questions.trim().startsWith("[")
+    ? JSON.parse(questions)
+    : Array.isArray(questions)
+      ? questions
+      : questions.split(/\n(?=\d+\.)/);
+} catch {
+  questionList = questions.split(/\n(?=\d+\.)/);
+}
+
+const selected = questionList
+  .map((q, index) => {
+    const qId = `q-${index}`;
+    if (!selectedQuestions.includes(qId)) return null;
+
+    if (typeof q === "object") {
+      // JSON 格式
+      return {
+        question: q.question,
+        options: q.options,
+        answer: q.answer,
+        hint: q.hint || "",
+      };
+    }
+
+    // 字串格式
+    const answerMatch = q.match(/Answer:\s*([A-D])/);
+    const hintMatch = q.match(/Hint:\s*(.+)/);
+    const answer = answerMatch ? answerMatch[1] : "";
+    const hint = hintMatch ? hintMatch[1].trim() : "";
+
+    const lines = q
+      .replace(/Answer:\s*[A-D]/, "")
+      .replace(/Hint:\s*.+/, "")
+      .trim()
+      .split("\n");
+
+    const question = lines[0]?.trim();
+    const options = lines.slice(1).map((l) => l.trim());
+
+    return { question, options, answer, hint };
+  })
+  .filter(Boolean);
     
       exportReadingToWord(article, selected);
     };
@@ -240,59 +261,74 @@ const res = await fetch(`${import.meta.env.VITE_API_URL}/api/reading/functions/s
     }, 2000);
 };
 const formatQuestions = (raw) => {
-    const blocks = raw.split(/\n(?=\d+\.)/);
-    return blocks.map((block, index) => {
-      const answerMatch = block.match(/Answer:\s*([A-D])/);
-      const hintMatch = block.match(/Hint:\s*(.+)/);
-      const answer = answerMatch ? answerMatch[1] : "";
-      const hint = hintMatch ? hintMatch[1] : "";
-  
-      const cleaned = block
+  let questionList = [];
+
+try {
+  questionList = typeof raw === "string" && raw.trim().startsWith("[")
+    ? JSON.parse(raw)
+    : Array.isArray(raw)
+      ? raw
+      : raw.split(/\n(?=\d+\.)/);
+} catch (err) {
+  questionList = raw.split(/\n(?=\d+\.)/);
+}
+
+
+  return questionList.map((q, index) => {
+    let question = "", options = [], answer = "", hint = "";
+    const questionId = `q-${index}`;
+    const isSelected = selectedQuestions.includes(questionId);
+    const handleCheckboxChange = () => {
+      setSelectedQuestions(prev =>
+        prev.includes(questionId)
+          ? prev.filter(id => id !== questionId)
+          : [...prev, questionId]
+      );
+    };
+
+    if (typeof q === "string") {
+      const answerMatch = q.match(/Answer:\s*([A-D])/);
+      const hintMatch = q.match(/Hint:\s*(.+)/);
+      answer = answerMatch ? answerMatch[1] : "";
+      hint = hintMatch ? hintMatch[1].trim() : "";
+
+      const cleaned = q
         .replace(/Answer:\s*[A-D]/, "")
         .replace(/Hint:\s*.+/, "")
         .trim();
-  
-      const questionId = `q-${index}`; // 為每題建立獨立 ID
-  
-      const isSelected = selectedQuestions.includes(questionId);
-  
-      const handleCheckboxChange = () => {
-        setSelectedQuestions(prev =>
-          prev.includes(questionId)
-            ? prev.filter(id => id !== questionId)
-            : [...prev, questionId]
-        );
-      };
+
       const lines = cleaned.split("\n");
-      const rawQuestion = lines[0].trim();
-      const questionLine = rawQuestion.replace(/^\d+\.\s*/, "");
-      
-      return (
-        <div key={index} className="mb-6">
-          <div className="flex items-start gap-2 mb-2">
-            <input
-              type="checkbox"
-              checked={isSelected}
-              onChange={handleCheckboxChange}
-              className="mt-2 accent-blue-500"
-            />
-  <p className="font-medium">{rawQuestion}</p>
+      question = lines[0]?.trim();
+      options = lines.slice(1).map((l) => l.trim());
+    } else {
+      question = q.question;
+      options = q.options || [];
+      answer = q.answer || "";
+      hint = q.hint || "";
+    }
 
-
-          </div>
-          <div className="ml-6 space-y-1">
-            {cleaned
-              .split("\n")
-              .slice(1)
-              .map((line, i) => (
-                <p key={i}>{line.trim()}</p>
-              ))}
-            {hint && <p className="italic text-gray-400">Hint: {hint}</p>}
-          </div>
+    return (
+      <div key={index} className="mb-6">
+        <div className="flex items-start gap-2 mb-2">
+          <input
+            type="checkbox"
+            checked={isSelected}
+            onChange={handleCheckboxChange}
+            className="mt-1 accent-blue-500"
+          />
+          <p className="font-medium">{question}</p>
         </div>
-      );
-    });
-  };
+        <div className="ml-6 space-y-1">
+          {options.map((opt, i) => (
+            <p key={i}>{`(${String.fromCharCode(65 + i)}) ${opt}`}</p>
+          ))}
+          {hint && <p className="italic text-gray-400">Hint: {hint}</p>}
+        </div>
+      </div>
+    );
+  });
+};
+
   
   
     return (
@@ -473,16 +509,30 @@ const formatQuestions = (raw) => {
     {/* 勾選控制按鈕 */}
     <div className="flex gap-2 mb-3">
     <Button
-      className="bg-blue-500 hover:bg-blue-600"
-      onClick={() => {
-        const allIds = questions
-          .split(/\n(?=\d+\.)/)
-          .map((_, index) => `q-${index}`);
-        setSelectedQuestions(allIds);
-      }}
-    >
-      全部勾選
-    </Button>
+  className="bg-blue-500 hover:bg-blue-600"
+  onClick={() => {
+    try {
+      let list = [];
+
+      // 如果是字串（大多數情況），嘗試轉成 JSON 陣列
+      if (typeof questions === "string" && questions.trim().startsWith("[")) {
+        list = JSON.parse(questions);
+      } else if (Array.isArray(questions)) {
+        list = questions;
+      } else {
+        list = questions.split(/\n(?=\d+\.)/);
+      }
+
+      const allIds = list.map((_, index) => `q-${index}`);
+      setSelectedQuestions(allIds);
+    } catch (err) {
+      console.error("⚠️ 全部勾選失敗：", err);
+    }
+  }}
+>
+  全部勾選
+</Button>
+
     <Button
   className="bg-gray-600 hover:bg-gray-700 text-white"
   onClick={() => setSelectedQuestions([])}
