@@ -492,7 +492,7 @@ const formatQuestions = (raw) => {
   </div>
 
   <div className="border h-[570px] overflow-y-auto p-2 rounded">
-    <div className="font-['Arial'] text-lg leading-relaxed">
+    <div className="font-['Arial'] text-lg leading-tight">
       {questions
         ? formatQuestions(questions)
         : <p className="text-gray-400 text-base">這裡會顯示 AI 生成的題目</p>}
