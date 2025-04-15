@@ -600,7 +600,7 @@ const formatQuestions = (raw) => {
                         <div className="col-span-4 space-y-3">
                             <h2 className="font-semibold text-2xl">題目設定</h2>
                             <div>
-                                <label>題數（可填）</label>
+                                <label>題數（AI決定題型，若要自選題型請忽略此欄）</label>
                                 <Input
                                 placeholder="總題數"
                                 value={totalQuestions}
