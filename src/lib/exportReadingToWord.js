@@ -15,9 +15,9 @@ export async function exportReadingToWord(article, questions) {
         const firstEmptyCellWidth = cm(2);
         const questionIndent = 50;
         const safeOptions = (q.options || []).concat(["", "", "", ""]).slice(0, 4);
-        const match = q.question.match(/^\(\s*([A-D])\s*\)\s*(.+)$/);
-        const answerLetter = match?.[1] || q.answer;
-        const questionText = match?.[2] || q.question;
+        const answerLetter = q.answer;
+        const questionText = q.question.replace(/^\(\s*[A-D]\s*\)\s*/, "");
+
 
 
         return [
