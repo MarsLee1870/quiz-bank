@@ -15,48 +15,37 @@ export async function exportReadingToWord(article, questions) {
         const firstEmptyCellWidth = cm(2);
         const questionIndent = 50;
         const safeOptions = (q.options || []).concat(["", "", "", ""]).slice(0, 4);
-        const answerLetter = q.answer;
-        const questionText = q.question.replace(/^\(\s*[A-D]\s*\)\s*/, "");
+        const rawQuestion = typeof q.question === "string" ? q.question : q.question?.question || "";
+        const questionText = rawQuestion.replace(/^\s*\(\s*[A-D]\s*\)\s*/, "").trim();
+        const answerLetter = q.answer || "";
 
 
 
         return [
 
-            // ===== 第一列 題號 + 題幹（分左右兩欄）=====
+            // ===== 第一列 題號 + 題幹=====
             new TableRow({
                 children: [
-                  // 左欄：題號 + 正解
                   new TableCell({
-                    width: { size: questionNumberWidth, type: WidthType.DXA },
+                    columnSpan: 2,
                     children: [
                       new Paragraph({
                         spacing: { line: 276 },
                         children: [
                           new TextRun({
-                            text: `${idx + 1}.`,
+                            text: `${idx + 1}. ( `,
                             font: "Times New Roman",
                             size: 28,
                           }),
                           new TextRun({
-                            text: ` ( ${answerLetter} )`,
+                            text: answerLetter,
                             font: "Times New Roman",
                             size: 28,
                             color: "FF0000",
                             bold: true,
                           }),
-                        ],
-                      }),
-                    ],
-                  }),
-              
-                  // 右欄：題幹（已去除開頭的 (B)）
-                  new TableCell({
-                    children: [
-                      new Paragraph({
-                        spacing: { line: 276 },
-                        children: [
                           new TextRun({
-                            text: questionText,
+                            text: ` ) ${questionText}`,
                             font: "Times New Roman",
                             size: 28,
                           }),
@@ -67,10 +56,7 @@ export async function exportReadingToWord(article, questions) {
                 ],
               }),
               
-  
-              
-
-
+ 
             // ===== 第二列 空白 + 選項 =====
             new TableRow({
                 children: [
