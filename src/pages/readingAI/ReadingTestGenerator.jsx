@@ -299,7 +299,8 @@ try {
 
       const lines = cleaned.split("\n");
       question = lines[0]?.trim();
-      options = lines.slice(1).map((l) => l.trim());
+      options = lines.slice(1).map((l) =>
+        l.trim().replace(/^\([A-D]\)\s*/, ""));
     } else {
       question = q.question;
       options = q.options || [];
