@@ -42,7 +42,7 @@ export default async function handler(req, res) {
       console.log("🔑 Redis REST TOKEN:", token);
       console.log("📦 Redis payload:", taskPayload);
     
-      const redisResponse = await fetch(`${url}/lpush/task_queue`, {
+      const redisResponse = await fetch(`${url}/lpush/reading_article_queue`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -63,7 +63,7 @@ export default async function handler(req, res) {
            
     
     } else {
-      await redis.lpush("task_queue", JSON.stringify(taskPayload));
+      await redis.lpush("reading_article_queue", JSON.stringify(taskPayload));
       console.log("✅ Redis response (Local): 已推入 queue");
     }
     
